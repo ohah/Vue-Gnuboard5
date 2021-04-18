@@ -1,0 +1,320 @@
+<?php
+trait bbs_list {
+  public function get_bbs_list($bo_table) {
+    global $g5;
+    $sca = $this->qstr['sca'];
+    $sfl = $this->qstr['sfl'];
+    $stx = $this->qstr['stx'];
+    $sst = $this->qstr['sst'];
+    $sod = $this->qstr['sod'];
+    $spt = $this->qstr['spt'];
+    $page = $this->qstr['page'];
+    $write_table = $g5['write_prefix'].$bo_table;
+    $member = $this->member;
+    $config = $this->config;
+    $is_admin = $this->is_admin;
+    $is_guest = $this->is_guest;
+    $is_member = $this->is_member;
+    $group = $this->group;
+    $board = $this->get_board_db($bo_table);
+    if ($member['mb_id'] && ($is_admin === 'super' || $group['gr_admin'] === $member['mb_id'])) $admin_href = G5_ADMIN_URL.'/board_form.php?w=u&amp;bo_table='.$bo_table;
+    $qstr = '';
+    foreach ($this->qstr as $key => $value) {
+      if($value) $qstr .= $key.'='.$value;
+    }
+
+    // 추천 사용
+    $is_good = false;
+    if ($board['bo_use_good'])
+      $is_good = true;
+
+    // 비추천 사용
+    $is_nogood = false;
+    if ($board['bo_use_nogood'])
+      $is_nogood = true;
+      
+    $category_option = array();
+    if ($board['bo_use_category']) {
+      $is_category = true;
+      $category_href = $this->get_pretty_url($bo_table);
+
+      if ($sca=='') {
+        $category_option[0]['active'] = true;
+      }
+      $category_option[0]['name'] = '전체';
+      $category_option[0]['url'] = $category_href;
+
+      $categories = explode('|', $board['bo_category_list']); // 구분자가 , 로 되어 있음
+      for ($i=0; $i<count($categories); $i++) {
+        $k = $i+1;
+        $category = trim($categories[$i]);
+        if ($category == '') continue;
+        $category_option[$k]['url'] = $this->get_pretty_url($bo_table,'','sca='.urlencode($category));        
+        if ($category == urldecode($sca)) { // 현재 선택된 카테고리라면
+          $category_option[$k]['active'] = true;
+        }
+        $category_option[$k]['name'] = $category;
+      }
+    }
+
+
+    $sop = strtolower($sop);
+    if ($sop != 'and' && $sop != 'or')
+      $sop = 'and';
+
+    // 분류 선택 또는 검색어가 있다면
+    $stx = trim($stx);
+    //검색인지 아닌지 구분하는 변수 초기화
+    $is_search_bbs = false;
+
+    if ($sca || $stx || $stx === '0') {     //검색이면
+      $is_search_bbs = true;      //검색구분변수 true 지정
+      $sql_search = $this->get_sql_search($sca, $sfl, $stx, $sop);
+
+      // 가장 작은 번호를 얻어서 변수에 저장 (하단의 페이징에서 사용)
+      $sql = "SELECT MIN(wr_num) as min_wr_num FROM {$write_table}";
+      $row = $this->sql_fetch($sql);
+      $min_spt = (int)$row['min_wr_num'];
+
+      if (!$spt) $spt = $min_spt;
+
+      $sql_search .= " and (wr_num between {$spt} and ({$spt} + {$config['cf_search_part']})) ";
+
+      // 원글만 얻는다. (코멘트의 내용도 검색하기 위함)
+      // 라엘님 제안 코드로 대체 http://sir.kr/g5_bug/2922
+      $sql = "SELECT COUNT(DISTINCT `wr_parent`) AS `cnt` FROM {$write_table} WHERE {$sql_search}";
+      $row = $this->sql_fetch($sql);
+      $total_count = $row['cnt'];
+      /*
+      $sql = " select distinct wr_parent from {$write_table} where {$sql_search} ";
+      $result = sql_query($sql);
+      $total_count = sql_num_rows($result);
+      */
+    } else {
+      $sql_search = "";
+
+      $total_count = $board['bo_count_write'];
+    }
+
+    if($this->is_mobile()) {
+      $page_rows = $board['bo_mobile_page_rows'];
+      $list_page_rows = $board['bo_mobile_page_rows'];
+    } else {
+      $page_rows = $board['bo_page_rows'];
+      $list_page_rows = $board['bo_page_rows'];
+    }
+  
+    if ($page < 1) { $page = 1; } // 페이지가 없으면 첫 페이지 (1 페이지)
+
+    // 년도 2자리
+    $today2 = G5_TIME_YMD;
+
+    $list = array();
+    $i = 0;
+    $notice_count = 0;
+    $notice_array = array();
+
+    // 공지 처리
+    if (!$is_search_bbs) {
+      $arr_notice = explode(',', trim($board['bo_notice']));
+      $from_notice_idx = ($page - 1) * $page_rows;
+      if($from_notice_idx < 0)
+        $from_notice_idx = 0;
+      $board_notice_count = count($arr_notice);
+
+      for ($k=0; $k<$board_notice_count; $k++) {
+        if (trim($arr_notice[$k]) == '') continue;
+
+        $row = $this->sql_fetch("select * from {$write_table} where wr_id = '?'", [$arr_notice[$k]]);
+
+        if (!$row['wr_id']) continue;
+
+        $notice_array[] = $row['wr_id'];
+
+        if($k < $from_notice_idx) continue;
+
+        $list[$i] = $this->get_list($row, $board, $board_skin_url, G5_IS_MOBILE ? $board['bo_mobile_subject_len'] : $board['bo_subject_len']);
+        $list[$i]['is_notice'] = true;
+        $list[$i]['num'] = 0;
+        $i++;
+        $notice_count++;
+
+        if($notice_count >= $list_page_rows)
+          break;
+      }
+    }
+
+    $total_page  = ceil($total_count / $page_rows);  // 전체 페이지 계산
+    $from_record = ($page - 1) * $page_rows; // 시작 열을 구함
+
+    // 공지글이 있으면 변수에 반영
+    if(!empty($notice_array)) {
+      $from_record -= count($notice_array);
+
+      if($from_record < 0)
+        $from_record = 0;
+
+      if($notice_count > 0)
+        $page_rows -= $notice_count;
+
+      if($page_rows < 0)
+        $page_rows = $list_page_rows;
+    }
+
+    // 관리자라면 CheckBox 보임
+    $is_checkbox = false;
+    if ($is_member && ($is_admin == 'super' || $group['gr_admin'] == $member['mb_id'] || $board['bo_admin'] == $member['mb_id']))
+      $is_checkbox = true;
+
+    // 정렬에 사용하는 QUERY_STRING
+    $qstr2 = 'bo_table='.$bo_table.'&amp;sop='.$sop;
+
+    // 0 으로 나눌시 오류를 방지하기 위하여 값이 없으면 1 로 설정
+    $bo_gallery_cols = $board['bo_gallery_cols'] ? $board['bo_gallery_cols'] : 1;
+    $td_width = (int)(100 / $bo_gallery_cols);
+
+    // 정렬
+    // 인덱스 필드가 아니면 정렬에 사용하지 않음
+    //if (!$sst || ($sst && !(strstr($sst, 'wr_id') || strstr($sst, "wr_datetime")))) {
+    if (!$sst) {
+      if ($board['bo_sort_field']) {
+        $sst = $board['bo_sort_field'];
+      } else {
+        $sst  = "wr_num, wr_reply";
+        $sod = "";
+      }
+    } else {
+      $board_sort_fields = get_board_sort_fields($board, 1);
+      if (!$sod && array_key_exists($sst, $board_sort_fields)) {
+        $sst = $board_sort_fields[$sst];
+      } else {
+        // 게시물 리스트의 정렬 대상 필드가 아니라면 공백으로 (nasca 님 09.06.16)
+        // 리스트에서 다른 필드로 정렬을 하려면 아래의 코드에 해당 필드를 추가하세요.
+        // $sst = preg_match("/^(wr_subject|wr_datetime|wr_hit|wr_good|wr_nogood)$/i", $sst) ? $sst : "";
+        $sst = preg_match("/^(wr_datetime|wr_hit|wr_good|wr_nogood)$/i", $sst) ? $sst : "";
+      }
+    }
+
+    if(!$sst)
+      $sst  = "wr_num, wr_reply";
+
+    if ($sst) {
+      $sql_order = " order by {$sst} {$sod} ";
+    }
+
+    if ($is_search_bbs) {
+      $sql = " select distinct wr_parent from {$write_table} where {$sql_search} {$sql_order} limit {$from_record}, $page_rows ";
+    } else {
+      $sql = " select * from {$write_table} where wr_is_comment = 0 ";
+      if(!empty($notice_array))
+          $sql .= " and wr_id not in (".implode(', ', $notice_array).") ";
+      $sql .= " {$sql_order} limit {$from_record}, $page_rows ";
+    }
+
+
+    
+    // 페이지의 공지개수가 목록수 보다 작을 때만 실행
+    if($page_rows > 0) {
+      $result = $this->sql_query($sql);
+
+      $k = 0;
+
+      for($j=0;$j<count($result);$j++) {
+        $row = $result[$j];
+        // 검색일 경우 wr_id만 얻었으므로 다시 한행을 얻는다
+        if ($is_search_bbs)
+          $row = $this->sql_fetch(" select * from {$write_table} where wr_id = ?", [$row['wr_parent']]);
+
+        $list[$i] = $this->get_list($row, $board, $board_skin_url, $this->is_mobile() ? $board['bo_mobile_subject_len'] : $board['bo_subject_len']);
+        if (strstr($sfl, 'subject')) {
+          $list[$i]['subject'] = $this->search_font($stx, $list[$i]['subject']);
+        }
+        $list[$i]['is_notice'] = false;
+        $list_num = $total_count - ($page - 1) * $list_page_rows - $notice_count;
+        $list[$i]['num'] = $list_num - $k;
+
+        $i++;
+        $k++;
+      }
+    }
+
+    g5_latest_cache_data($board['bo_table'], $list);
+
+    $write_pages = $this->get_paging($this->is_mobile() ? $config['cf_mobile_pages'] : $config['cf_write_pages'], $page, $total_page, $this->get_pretty_url($bo_table, '', $qstr.'&amp;page='));
+
+    $list_href = '';
+    $prev_part_href = '';
+    $next_part_href = '';
+    if ($is_search_bbs) {
+      $list_href = $this->get_pretty_url($bo_table);
+
+      $patterns = array('#&amp;page=[0-9]*#', '#&amp;spt=[0-9\-]*#');
+
+      //if ($prev_spt >= $min_spt)
+      $prev_spt = $spt - $config['cf_search_part'];
+      if (isset($min_spt) && $prev_spt >= $min_spt) {
+        $qstr1 = preg_replace($patterns, '', $qstr);
+        $prev_part_href = $this->get_pretty_url($bo_table,0,$qstr1.'&amp;spt='.$prev_spt.'&amp;page=1');
+        $write_pages = $this->page_insertbefore($write_pages, $prev_part_href);
+      }
+
+      $next_spt = $spt + $config['cf_search_part'];
+      if ($next_spt < 0) {
+        $qstr1 = preg_replace($patterns, '', $qstr);
+        $next_part_href = $this->get_pretty_url($bo_table,0,$qstr1.'&amp;spt='.$next_spt.'&amp;page=1');
+        $write_pages = $this->page_insertafter($write_pages, $next_part_href);
+      }
+    }
+
+
+    $write_href = '';
+    if ($member['mb_level'] >= $board['bo_write_level']) {
+      $write_href = $this->short_url_clean(G5_BBS_URL.'/write.php?bo_table='.$bo_table);
+    }
+
+    $nobr_begin = $nobr_end = "";
+    if (preg_match("/gecko|firefox/i", $_SERVER['HTTP_USER_AGENT'])) {
+      $nobr_begin = '<nobr>';
+      $nobr_end   = '</nobr>';
+    }
+
+    // RSS 보기 사용에 체크가 되어 있어야 RSS 보기 가능 061106
+    $rss_href = '';
+    if ($board['bo_use_rss_view']) {
+      $rss_href = G5_BBS_URL.'/rss.php?bo_table='.$bo_table;
+    }
+
+    $stx = $this->get_text(stripslashes($stx));
+    $colspan = 5;
+    if ($is_checkbox) $colspan++;
+    if ($is_good) $colspan++;
+    if ($is_nogood) $colspan++;
+    /*
+    [bo_use_list_view] => 0
+    [bo_use_list_file] => 0
+    [bo_use_list_content] => 0
+    */
+    $result = array();
+    $pagetitle = $page ? " ".$page.' 페이지' : '';
+    $result['title'] = (($this->is_mobile() && $board['bo_mobile_subject']) ? $board['bo_mobile_subject'] : $board['bo_subject']).$pagetitle;
+    $result['page_rows'] = $page_rows;
+    $result['write_pages'] = $write_pages;
+    $result['total_page'] = $total_page;
+    $result['total_count'] = $total_count;
+    $result['page'] = $page;
+    $result['write_href'] = $write_href;
+    $result['bo_gallery_cols'] = $bo_gallery_cols;
+    $result['td_width'] = $td_width;
+    $result['list'] = $this->unset_data($list);
+    $result['qstr'] = $qstr;
+    $result['category_option'] = $category_option;
+    $result['is_category'] = $is_category;
+    $result['admin_href'] = $admin_href;
+    $result['rss_href'] = $rss_href;
+    $result['is_checkbox'] = $is_checkbox;
+    $result['colspan'] = $colspan;
+    $result['is_good'] = $is_good;
+    $result['is_nogood'] = $is_nogood;
+    return $this->data_encode($result);
+  }
+}
