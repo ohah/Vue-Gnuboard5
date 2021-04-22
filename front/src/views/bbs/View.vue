@@ -55,8 +55,17 @@
       </ul>
       <Divider />
       <section id="bo_v_atc" class="p-pb-3">
-        <div v-for="(file, i) in view.file" :key="i">
-          <img v-if="imageExt(file.name)" :src="`${file.path}/${file.file}`" style="width:100%" />
+        <div v-for="(file, i) in view.file" :key="i" >
+          <Galleria v-if="imageExt(file.name)" :value="[file]" :numVisible="1" :showThumbnails="false" >
+            <template #item="{item}">
+              <img :src="`${item.path}/${item.file}`" class="p-mb-5 p-cursor-pointer" style="max-height:25rem;"  @click="ImageView[i] = !ImageView[i]"/>                
+            </template>
+          </Galleria>
+          <Galleria v-if="imageExt(file.name)" :value="[file]" :numVisible="1" :showThumbnails="false" :fullScreen="true" v-model:visible="ImageView[i]">
+            <template #item="{item}">
+              <img :src="`${item.path}/${item.file}`" style="width:100%"/>                
+            </template>
+          </Galleria>
         </div>
         <h2 id="bo_v_atc_title" class="sound_only">본문</h2>
         <div class="p-d-flex p-jc-end">
@@ -335,7 +344,9 @@ export default defineComponent({
     onMounted(async () => {
       getVIEW();
     });
+    const ImageView = reactive({});
     return {
+      ImageView,
       ...toRefs(qstr),
       ...toRefs(data),
       isLoading,

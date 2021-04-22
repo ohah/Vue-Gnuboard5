@@ -1944,3 +1944,7 @@ export const bbs_newInitial:bbs_new = {
   page: 0,
   total_count: 0,
 }
+export interface socialconfig {
+  cf_social_login_use:number,
+  cf_social_servicelist:string[],
+}

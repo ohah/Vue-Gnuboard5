@@ -187,3 +187,4 @@ html, body{margin:0;padding:0;background-color: var(--body-background);}
   /* .p-list-subject{width:100%;display:flex;} */
 }
 .p-overlaypanel .p-overlaypanel-content{padding:0}
+.p-galleria .p-galleria-caption{padding:0}

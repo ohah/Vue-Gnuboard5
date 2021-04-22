@@ -310,7 +310,14 @@ $router->mount('/captcha', function() use ($router, $api) {
     require API_PATH.'/plugin/kcaptcha/kcaptcha_image.php';
   });
 });
-
+$router->mount('/formmail', function() use ($router, $api) {
+  $router->match('GET', '/formmail_send', function() use ($api) {
+    echo $api->formmail_send();
+  });
+  $router->match('GET', '/{email}/{mb_id}', function($email, $mb_id) use ($api) {
+    echo $api->formmail($email, $mb_id);
+  });
+});
 $router->match('GET', '/download/{no}', function($no) use ($router, $api) {
   $api->download($no);
 });
@@ -320,5 +327,19 @@ $router->post('get_write_token/{bo_table}', function($bo_table) use ($api) {
 });
 $router->post('get_write_comment_token', function() use ($api) {
   echo $api->set_comment_token();
+});
+$router->mount('/social', function() use ($router, $api) {
+  $router->get('/', function() use ($api) {
+    echo $api->social();
+  });
+  $router->get('/config', function() use ($api) {
+    echo $api->social_config();
+  });
+  $router->get('/popup', function() use ($api) {
+    echo $api->social_popup();
+  });
+  $router->get('/token', function() use ($api) {
+    echo $api->social_token();
+  });
 });
 $router->run();

@@ -11,6 +11,7 @@ import Profile from '@/views/bbs/Profile.vue'
 import Register from '@/views/bbs/Register.vue'
 import Content from '@/views/bbs/Content.vue'
 import New from '@/views/bbs/New.vue'
+import Social from '@/views/bbs/Social.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -88,7 +89,11 @@ const routes: Array<RouteRecordRaw> = [
     name : 'board',
     component: Board,
   },
-  
+  {
+    path : '/social',
+    name : 'social',
+    component: Social,
+  },
   {
     path: '/List',
     name: 'List',

@@ -27,6 +27,7 @@ require_once API_PATH.'/bbs/memo.php';
 require_once API_PATH.'/bbs/point.php';
 require_once API_PATH.'/bbs/db_table.optimize.php';
 require_once API_PATH.'/bbs/content.php';
+require_once API_PATH.'/bbs/formmail.php';
 require_once API_PATH.'/plugin/kcaptcha/kcaptcha.lib.php';
 require_once API_PATH.'/lib/latest.lib.php';
 require_once API_PATH.'/lib/register.lib.php';
@@ -36,7 +37,9 @@ require_once API_PATH.'/lib/get_data.lib.php';
 require_once API_PATH.'/lib/naver_syndi.lib.php';
 require_once API_PATH.'/lib/mailer.lib.php';
 require_once API_PATH.'/lib/thumbnail.lib.php';
-
+/**소셜로그인 */
+require_once API_PATH.'/plugin/social/index.php';
+/** 소셜로그인 */
 /** 구글 캡챠 */
 require_once API_PATH.'/plugin/recaptcha/recaptcha.class.php';
 require_once API_PATH.'/plugin/recaptcha/recaptcha.user.lib.php';
@@ -51,6 +54,8 @@ class Commonlib {
   use good;
   use qa;
   use visit_insert;
+  use formmail;
+  use social;
   use bbs_new;
   use password;
   use register;
@@ -718,7 +723,7 @@ class Commonlib {
     }
     if($email) {
       $str['email']['title'] = '이메일';
-      $str['email']['url'] = G5_BBS_URL."/formmail?mb_id=".$mb_id."&amp;name=".urlencode($name)."&amp;email=".$email;
+      $str['email']['url'] = G5_BBS_URL."/formmail?mb_id=".$mb_id."&name=".urlencode($name)."&email=".$email;
     }
     if($homepage) {
       $str['homepage']['title'] = '홈페이지';
@@ -731,10 +736,10 @@ class Commonlib {
     if($bo_table) {
       if($mb_id) {
         $str['search_mb_id']['title'] = '아이디로 검색';
-        $str['search_mb_id']['url'] = $this->get_pretty_url($bo_table, '', "sca=".$sca."&amp;sfl=mb_id,1&amp;stx=".$en_mb_id);
+        $str['search_mb_id']['url'] = $this->get_pretty_url($bo_table, '', "sca=".$sca."&sfl=mb_id,1&stx=".$en_mb_id);
       } else {
         $str['search_name']['title'] = '이름으로 검색';
-        $str['search_name']['url'] = $this->get_pretty_url($bo_table, '', "sca=".$sca."&amp;sfl=wr_name,1&amp;stx=".$name);
+        $str['search_name']['url'] = $this->get_pretty_url($bo_table, '', "sca=".$sca."&sfl=wr_name,1&stx=".$name);
       }
     }
     if($mb_id) {
@@ -743,9 +748,9 @@ class Commonlib {
     }
     if($is_admin == "super" && $mb_id) {
       $str['mb_info']['title'] = '회원정보변경';
-      $str['mb_info']['url'] = G5_ADMIN_URL."/member_form?w=u&amp;mb_id=".$mb_id;
+      $str['mb_info']['url'] = G5_ADMIN_URL."/member_form?w=u&mb_id=".$mb_id;
       $str['mb_point']['title'] = '포인트내역';
-      $str['mb_point']['url'] = G5_ADMIN_URL."/point_list?sfl=mb_id&amp;stx=".$mb_id;
+      $str['mb_point']['url'] = G5_ADMIN_URL."/point_list?sfl=mb_id&stx=".$mb_id;
     }
     $result['list'] = $str;
     return $result;

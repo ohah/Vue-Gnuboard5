@@ -140,23 +140,33 @@
         </ul>
       </template>
       <template #grid="row">
-        <div class="p-col-12 p-md-4 p-lg-3 p-xl-2">
+        <div class="p-col-12 p-md-4 p-lg-3">
           <div class="p-m-2 p-shadow-2" style="background:var(--surface-0)">
-            <router-link :to="RdURL(row.data.href)">
-              <div v-if="row.data.thumb.src" >
-                <img :src="row.data.thumb.src" class="grid-image"/>
-              </div>
-              <div v-else class="grid-no-image">
-                NO IMAGE
-              </div>
-            </router-link>
-            <div class="grid-footer">
-              <p class="p-d-flex p-jc-between p-py-2"> 
-                <span cass="p-bold"><router-link :to="RdURL(row.data.href)">{{row.data.wr_subject}}</router-link></span>
-                <span class="text-gray-500 p-pr-2">{{row.data.wr_datetime.substr(5,5)}}</span>
-              </p>
-              <Sideview :data="row.data.name" class="p-py-1 p-pr-2 p-d-flex p-jc-end"/>
+            <Galleria :value="[row.data]" :numVisible="1" :showThumbnails="false">
+              <template #item="{item}">
+                <router-link :to="RdURL(row.data.href)" style="display:contents;">
+                  <div v-if="item.thumb.src" >
+                    <img :src="`${item.thumb.src}`" :alt="item.source" class="grid-image"/>
+                  </div>
+                  <div v-else class="grid-no-image">
+                    NO IMAGE
+                  </div>
+                </router-link>
+              </template>
+              <template #caption="{item}">
+                <p class="p-d-flex p-jc-between p-py-2 p-px-2"> 
+                  <span cass="p-bold"><router-link :to="RdURL(item.href)">{{item.wr_subject}}</router-link></span>
+                  <span class="text-gray-500 p-pr-2">{{item.wr_datetime.substr(5,5)}}</span>
+                </p>
+                <Sideview :data="item.name" class="p-py-1 p-pr-2 p-d-flex p-jc-end"/>
+              </template>
+            </Galleria>
+            <!-- <div v-if="row.data.thumb.src" >
+              <img :src="row.data.thumb.src" class="grid-image"/>
             </div>
+            <div v-else class="grid-no-image">
+              NO IMAGE
+            </div> -->
           </div>
         </div>
       </template>
@@ -229,7 +239,7 @@ export default defineComponent({
       {icon: 'pi pi-bars', value: 'list'},
       {icon: 'pi pi-th-large', value: 'grid'},
     ]);
-    const Listlayout = ref<string>('list');
+    const Listlayout = ref<string>(`list`);
     const isLoading = ref<boolean>(false);
     const store = useStore<RootState>();
     const member = computed(()=>store.state.member);

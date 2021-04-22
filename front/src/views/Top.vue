@@ -22,7 +22,7 @@
             </div>
           </form>
         </OverlayPanel>
-        <Button v-if="!member.mb_nick" icon="pi pi-sign-in" v-tooltip.bottom="'로그인'" class="p-button-sm" @click="loginModal = !loginModal" />
+        <Button v-if="!member.mb_nick" icon="pi pi-sign-in" v-tooltip.bottom="'로그인'" class="p-button-sm" @click="ShowLogin" />
         <Dialog header="로그인" v-model:visible="loginModal" :modal="true">
           <form @submit.prevent="Login">
             <div class="p-inputgroup p-mb-2">
@@ -36,6 +36,11 @@
                 <i class="pi pi-key"></i>
               </span>
               <Password placeholder="비밀번호를 입력하세요" v-model="mb_password" toggleMask></Password>
+            </div>
+            <div class="p-inputgroup" v-if="cf_social_login_use === 1">
+              <div v-for="(item, i) in cf_social_servicelist" :key="i">
+                <Button :label="item" @click="Popup(item)"/>
+              </div>
             </div>
           </form>
           <template #footer>
@@ -67,7 +72,7 @@ import { RootState } from '@/store';
 import { useStore } from 'vuex'
 import { defineComponent,ref, computed, onMounted, reactive, toRefs } from 'vue'
 import { usePrimeVue } from "primevue/config";
-import { getPostAPI } from '../type';
+import { getAPI, getPostAPI, socialconfig } from '../type';
 import { useRoute, useRouter } from 'vue-router';
 export default defineComponent({
 	setup () {
@@ -75,7 +80,6 @@ export default defineComponent({
     const {state, dispatch, commit} = useStore<RootState>();
     const member = computed(()=>state.member);
     const router = useRouter();
-    
     const route = useRoute();
     onMounted(async ()=>{
       primevue.config.locale.weak = "보안에 심각한 문제가 있는 비밀번호입니다";
@@ -91,6 +95,17 @@ export default defineComponent({
         state.member = Login_Check.data;
       }
     });
+    const Popup = (platform:string) => {
+      var pop_url = `http://localhost/plugin/social/popup.php?provider=${platform}`;
+      var newWin = window.open(
+        pop_url, 
+        "social_sing_on", 
+        "location=0,status=0,scrollbars=1,width=600,height=500"
+      );
+      if(!newWin || newWin.closed || typeof newWin.closed=='undefined')
+        alert('브라우저에서 팝업이 차단되어 있습니다. 팝업 활성화 후 다시 시도해 주세요.');
+      return false;
+    }
     const isSidebar = computed(()=>state.layout.isSidebar);
     const SideBarToggle = ()=> commit("layout/toggle");
     const dropdown = ref<boolean>(false)
@@ -173,10 +188,23 @@ export default defineComponent({
     const logout = async () => {
       await dispatch("LOGOUT", member);
     }
+    const socialLogin = reactive<socialconfig>({
+      cf_social_login_use:0,
+      cf_social_servicelist:[],
+    });
+    const ShowLogin = async () => {
+      const res = await getAPI('/social/config');
+      loginModal.value = true;
+      socialLogin.cf_social_login_use = res.data.cf_social_login_use;
+      socialLogin.cf_social_servicelist = res.data.cf_social_servicelist;
+    }
     const stx = ref<string>('');
 		return {
+      Popup,
+      ...toRefs(socialLogin),
       MenusEvent,
       Menus,
+      ShowLogin,
       router,
       logout,
       login,

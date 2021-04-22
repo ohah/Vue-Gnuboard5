@@ -62,6 +62,7 @@ import OverlayPanel from 'primevue/overlaypanel';
 import Editor from 'primevue/editor';
 import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
+import Galleria from 'primevue/galleria';
 
 const app = createApp(App);
 const head = createHead();
@@ -73,6 +74,7 @@ app.use(router);
 app.use(PrimeVue, {ripple: true});
 app.component('Dialog', Dialog);
 app.component('Splitter', Splitter);
+app.component('Galleria', Galleria);
 app.component('SplitterPanel', SplitterPanel);
 app.component('Sidebar', Sidebar);
 app.component('Button', Button);
