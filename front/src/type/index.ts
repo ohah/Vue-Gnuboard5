@@ -1,4 +1,6 @@
 import axios from 'axios';
+axios.defaults.headers.post['Content-Type'] = 'application/json;charset=utf-8';
+axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
 export async function getMenus() {
   const res = await axios.get<datas>(
     `/api/menus`
@@ -1839,7 +1841,7 @@ export interface bbs_new {
   page: number;
   total_count: number;
 }
-export const NewListInitial:NewList = {
+export const NewListInitial: NewList = {
   wr_id: 0,
   wr_num: 0,
   wr_reply: '',
@@ -1935,16 +1937,138 @@ export interface NewList {
   gr_subject: string;
   bo_subject: string;
 }
-export const bbs_newInitial:bbs_new = {
-  title:'',
+export const bbs_newInitial: bbs_new = {
+  title: '',
   group_select: [GroupSelectInitial],
-  list:[NewListInitial],
+  list: [NewListInitial],
   write_pages: write_pageInitial,
   page_rows: 0,
   page: 0,
   total_count: 0,
 }
 export interface socialconfig {
-  cf_social_login_use:number,
-  cf_social_servicelist:string[],
+  cf_social_login_use: number,
+  cf_social_servicelist: string[],
+}
+export const pollInitial: poll = {
+  po_id: 0,
+  po_subject: '',
+  po_poll1: '',
+  po_poll2: '',
+  po_poll3: '',
+  po_poll4: '',
+  po_poll5: '',
+  po_poll6: '',
+  po_poll7: '',
+  po_poll8: '',
+  po_poll9: '',
+  po_cnt1: 0,
+  po_cnt2: 0,
+  po_cnt3: 0,
+  po_cnt4: 0,
+  po_cnt5: 0,
+  po_cnt6: 0,
+  po_cnt7: 0,
+  po_cnt8: 0,
+  po_cnt9: 0,
+  po_etc: '',
+  po_level: 0,
+  po_point: 0,
+  po_date: '',
+  po_ips: '',
+  mb_ids: '',
+}
+export interface poll {
+  po_id: number;
+  po_subject: string;
+  po_poll1: string;
+  po_poll2: string;
+  po_poll3: string;
+  po_poll4: string;
+  po_poll5: string;
+  po_poll6: string;
+  po_poll7: string;
+  po_poll8: string;
+  po_poll9: string;
+  po_cnt1: number;
+  po_cnt2: number;
+  po_cnt3: number;
+  po_cnt4: number;
+  po_cnt5: number;
+  po_cnt6: number;
+  po_cnt7: number;
+  po_cnt8: number;
+  po_cnt9: number;
+  po_etc: string;
+  po_level: number;
+  po_point: number;
+  po_date: string;
+  po_ips: string;
+  mb_ids: string;
+}
+// export const user_profileInitial:user_profile = {
+//   identifier:0,
+//   webSiteURL:'',
+//   profileURL:'',
+//   photoURL:'',
+//   displayName:'',
+//   description:'',
+//   firstName:'',
+//   lastName:'',
+//   gender:'',
+//   language:'',
+//   age:'',
+//   birthDay:'',
+//   birthMonth:'',
+//   birthYear:'',
+//   email:'',
+//   emailVerified:'',
+//   phone:'',
+//   address:'',
+//   country:'',
+//   region:'',
+//   city:'',
+//   zip:'',
+//   job_title:'',
+//   organization_name:'',
+//   sid:'',
+// }
+// export interface user_profile {
+//   identifier: number;
+//   webSiteURL: string;
+//   profileURL: string;
+//   photoURL: string;
+//   displayName: string;
+//   description: string;
+//   firstName: string;
+//   lastName: string;
+//   gender: string;
+//   language: string;
+//   age: string;
+//   birthDay: string;
+//   birthMonth: string;
+//   birthYear: string;
+//   email: string;
+//   emailVerified: string;
+//   phone: string;
+//   address: string;
+//   country: string;
+//   region: string;
+//   city: string;
+//   zip: string;
+//   job_title: string;
+//   organization_name: string;
+//   sid: string;
+// }
+export const user_profileInitial:user_profile = {
+  user_id:'',
+  user_email:'',
+  user_name:'',
+  user_nick:'',
+}
+export interface user_profile {
+  user_id:string,
+  user_email:string,
+  user_name:string,
+  user_nick:string,
 }

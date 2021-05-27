@@ -1,15 +1,37 @@
 module.exports = {
+  configureWebpack: {
+    devServer: {
+      headers: { "Access-Control-Allow-Origin": "*" }
+    }
+  },
   devServer: {
+    allowedHosts: [
+      'http://localhost',
+      'localhost',
+      'localhost:8080',
+      'http://localhost:8080',
+    ],
+    headers: { "Access-Control-Allow-Origin": "*" },
     port: 8080, // CHANGE YOUR PORT HERE!
     proxy: {
       "/api": {
-        //target: 'http://193.123.246.157/blog',
         target: "http://localhost/api",
         changeOrigin: true,
+        ws: true,
         pathRewrite: {
           "^/api": ""
         }
-      }
+      },
+      "/v": {
+        target: "http://localhost/",
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        pathRewrite: {
+          "^/v": ""
+          
+        }
+      },
     },
     inline: true,
     hot: true,

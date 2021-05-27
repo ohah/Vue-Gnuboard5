@@ -29,6 +29,7 @@ require_once API_PATH.'/bbs/db_table.optimize.php';
 require_once API_PATH.'/bbs/content.php';
 require_once API_PATH.'/bbs/formmail.php';
 require_once API_PATH.'/plugin/kcaptcha/kcaptcha.lib.php';
+require_once API_PATH.'/lib/poll.lib.php';
 require_once API_PATH.'/lib/latest.lib.php';
 require_once API_PATH.'/lib/register.lib.php';
 require_once API_PATH.'/lib/popular.lib.php';
@@ -53,6 +54,7 @@ class Commonlib {
   use email_certify;
   use good;
   use qa;
+  use polllib;
   use visit_insert;
   use formmail;
   use social;

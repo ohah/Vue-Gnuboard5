@@ -66,6 +66,7 @@ import { useHead } from '@vueuse/head'
 export default defineComponent({
   setup () {
     const cf_stipulation = ref<string>('');
+    const cf_privacy = ref<string>('');
     const all_check = ref<boolean>(false);
     const agree = ref<string[]>();
     const router = useRouter();
@@ -82,7 +83,7 @@ export default defineComponent({
     })
     onMounted(async () => {
       const res = await getPostAPI(`/register`);
-      console.log(res);
+      // console.log(res);
       cf_stipulation.value = res.data.cf_stipulation;
     });
     return {

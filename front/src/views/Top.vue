@@ -42,6 +42,7 @@
                 <Button :label="item" @click="Popup(item)"/>
               </div>
             </div>
+            <!-- <iframe ref="iframe" crossorigin="anonymous"/> -->
           </form>
           <template #footer>
             <Button label="취소" icon="pi pi-times" @click="loginModal = !loginModal" class="p-button-text"/>
@@ -81,6 +82,7 @@ export default defineComponent({
     const member = computed(()=>state.member);
     const router = useRouter();
     const route = useRoute();
+    // document.domain = "localhost";
     onMounted(async ()=>{
       primevue.config.locale.weak = "보안에 심각한 문제가 있는 비밀번호입니다";
       primevue.config.locale.medium = "보안에 문제가 있습니다";
@@ -96,14 +98,16 @@ export default defineComponent({
       }
     });
     const Popup = (platform:string) => {
-      var pop_url = `http://localhost/plugin/social/popup.php?provider=${platform}`;
-      var newWin = window.open(
-        pop_url, 
-        "social_sing_on", 
-        "location=0,status=0,scrollbars=1,width=600,height=500"
-      );
-      if(!newWin || newWin.closed || typeof newWin.closed=='undefined')
-        alert('브라우저에서 팝업이 차단되어 있습니다. 팝업 활성화 후 다시 시도해 주세요.');
+      router.push({name : 'social', params : {provider : platform}});
+      loginModal.value = false;
+      // var pop_url = `http://localhost:8080/v/plugin/social/popup.php?provider=${platform}`;
+      // var newWin = window.open(
+      //   pop_url, 
+      //   "social_sing_on", 
+      //   "location=0,status=0,scrollbars=1,width=600,height=500"
+      // );
+      // if(!newWin || newWin.closed || typeof newWin.closed=='undefined')
+      //   alert('브라우저에서 팝업이 차단되어 있습니다. 팝업 활성화 후 다시 시도해 주세요.');
       return false;
     }
     const isSidebar = computed(()=>state.layout.isSidebar);

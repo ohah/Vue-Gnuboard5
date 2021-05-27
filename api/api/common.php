@@ -20,6 +20,7 @@ trait common {
   public $write = array();
   public $qstr = array('sca'=>'', 'sfl'=>'','stx'=>'','sst'=>'','sst'=>'','sod'=>'','spt'=>'','page'=>'');
   public $g5_object;
+  
   public function __construct() {
     global $g5, $g5_object;
     $this->g5_object = $g5_object;

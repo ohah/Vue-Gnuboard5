@@ -80,7 +80,7 @@ class Gnuboard_api extends commonlib {
   public function data_encode($data, $status = '200', $message = "OK") {
     $result = [];
     $result['status'] = 200;
-    $result['message'] = 'OK';
+    $result['message'] = $message;
     $result['data'] = $data;
     return json_encode($result, JSON_UNESCAPED_UNICODE);
   }
@@ -139,8 +139,8 @@ class Gnuboard_api extends commonlib {
     }    
     if($this->login_password_check($mb, $mb_password, $mb['mb_password'])) {  //비밀번호가 같으면 
       $payload = array(
-        "iss" => "kbl-ref.com",
-        "iss" => "vorfeed",
+        "iss" => "localhost",
+        "iss" => "creator",
         "aud" => $mb_id,
         "iat" => time(),
         "nbf" => time(),

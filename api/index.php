@@ -332,14 +332,20 @@ $router->mount('/social', function() use ($router, $api) {
   $router->get('/', function() use ($api) {
     echo $api->social();
   });
+  $router->match('PUT|POST', '/update', function() use ($api) {
+    echo $api->social_update();
+  });
   $router->get('/config', function() use ($api) {
     echo $api->social_config();
   });
-  $router->get('/popup', function() use ($api) {
-    echo $api->social_popup();
+  $router->get('/popup/{provider}', function($provider) use ($api) {
+    echo $api->social_popup($provider);
   });
-  $router->get('/token', function() use ($api) {
-    echo $api->social_token();
+  $router->get('/token/{provider_name}', function($provider_name) use ($api) {
+    echo $api->social_token($provider_name);
   });
+});
+$router->get('/poll', function() use ($api) {
+  echo $api->poll();
 });
 $router->run();
