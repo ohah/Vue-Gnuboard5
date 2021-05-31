@@ -234,49 +234,74 @@ trait write_update{
       
 
       $sql = " insert into $write_table
-               set wr_num = '$wr_num',
-                  wr_reply = '$wr_reply',
+               set wr_num = :wr_num,
+                  wr_reply = :wr_reply,
                   wr_parent = 0,
                   wr_is_comment = 0,
                   wr_comment = 0,
                   wr_comment_reply = 0,
-                  ca_name = '$ca_name',
-                  wr_option = '$wr_option',
-                  wr_subject = '$wr_subject',
-                  wr_content = '$wr_content',
-                  wr_seo_title = '$wr_seo_title',
-                  wr_link1 = '$wr_link1',
-                  wr_link2 = '$wr_link2',
+                  ca_name = :ca_name,
+                  wr_option = :wr_option,
+                  wr_subject = :wr_subject,
+                  wr_content = :wr_content,
+                  wr_seo_title = :wr_seo_title,
+                  wr_link1 = :wr_link1,
+                  wr_link2 = :wr_link2,
                   wr_link1_hit = 0,
                   wr_link2_hit = 0,
                   wr_hit = 0,
                   wr_good = 0,
                   wr_nogood = 0,
-                  mb_id = '{$member['mb_id']}',
-                  wr_password = '$wr_password',
-                  wr_name = '$wr_name',
-                  wr_email = '$wr_email',
-                  wr_homepage = '$wr_homepage',
+                  mb_id = :mb_id,
+                  wr_password = :wr_password,
+                  wr_name = :wr_name,
+                  wr_email = :wr_email,
+                  wr_homepage = :wr_homepage,
                   wr_datetime = '".G5_TIME_YMDHIS."',
                   wr_file = 0,
                   wr_facebook_user = '',
                   wr_twitter_user = '',
                   wr_last = '".G5_TIME_YMDHIS."',
                   wr_ip = '{$_SERVER['REMOTE_ADDR']}',
-                  wr_1 = '$wr_1',
-                  wr_2 = '$wr_2',
-                  wr_3 = '$wr_3',
-                  wr_4 = '$wr_4',
-                  wr_5 = '$wr_5',
-                  wr_6 = '$wr_6',
-                  wr_7 = '$wr_7',
-                  wr_8 = '$wr_8',
-                  wr_9 = '$wr_9',
-                  wr_10 = '$wr_10' ";
-      $res = $this->sql_query($sql);
+                  wr_1 = :wr_1,
+                  wr_2 = :wr_2,
+                  wr_3 = :wr_3,
+                  wr_4 = :wr_4,
+                  wr_5 = :wr_5,
+                  wr_6 = :wr_6,
+                  wr_7 = :wr_7,
+                  wr_8 = :wr_8,
+                  wr_9 = :wr_9,
+                  wr_10 = :wr_10 ";
+      $res = $this->pdo_query($sql,
+      array(
+        "wr_num" => $wr_num,
+        "wr_reply" => $wr_reply,
+        "ca_name" => $ca_name,
+        "wr_option" => $wr_option,
+        "wr_subject" => $wr_subject,
+        "wr_content" => $wr_content,
+        "wr_seo_title" => $wr_seo_title,
+        "wr_link1" => $wr_link1,
+        "wr_link2" => $wr_link2,
+        "mb_id" => $member['mb_id'],
+        "wr_password" => $wr_password,
+        "wr_name" => $wr_name,
+        "wr_email" => $wr_email,
+        "wr_homepage"=>$wr_homepage,
+        "wr_1" => $wr_1,
+        "wr_2" => $wr_2,
+        "wr_3" => $wr_3,
+        "wr_4" => $wr_4,
+        "wr_5" => $wr_5,
+        "wr_6" => $wr_6,
+        "wr_7" => $wr_7,
+        "wr_8" => $wr_8,
+        "wr_9" => $wr_9,
+        "wr_10" => $wr_10,
+      ));
       
       $wr_id = $this->db->lastInsertId();
-
       // 부모 아이디에 UPDATE
       $this->sql_query(" update $write_table set wr_parent = '$wr_id' where wr_id = '$wr_id' ");
 
@@ -365,31 +390,55 @@ trait write_update{
       if (!$is_admin) $sql_ip = " , wr_ip = '{$_SERVER['REMOTE_ADDR']}' ";
 
       $sql = " update {$write_table}
-                set ca_name = '{$ca_name}',
-                     wr_option = '{$wr_option}',
-                     wr_subject = '{$wr_subject}',
-                     wr_content = '{$wr_content}',
-                     wr_seo_title = '$wr_seo_title',
-                     wr_link1 = '{$wr_link1}',
-                     wr_link2 = '{$wr_link2}',
-                     mb_id = '{$mb_id}',
-                     wr_name = '{$wr_name}',
-                     wr_email = '{$wr_email}',
-                     wr_homepage = '{$wr_homepage}',
-                     wr_1 = '{$wr_1}',
-                     wr_2 = '{$wr_2}',
-                     wr_3 = '{$wr_3}',
-                     wr_4 = '{$wr_4}',
-                     wr_5 = '{$wr_5}',
-                     wr_6 = '{$wr_6}',
-                     wr_7 = '{$wr_7}',
-                     wr_8 = '{$wr_8}',
-                     wr_9 = '{$wr_9}',
-                     wr_10= '{$wr_10}'
+                set ca_name = :ca_name,
+                     wr_option = :wr_option,
+                     wr_subject = :wr_subject,
+                     wr_content = :wr_content,
+                     wr_seo_title = :wr_seo_title,
+                     wr_link1 = :wr_link1,
+                     wr_link2 = :wr_link2,
+                     mb_id = :mb_id,
+                     wr_name = :wr_name,
+                     wr_email = :wr_email,
+                     wr_homepage = :wr_homepage,
+                     wr_1 = :wr_1,
+                     wr_2 = :wr_2,
+                     wr_3 = :wr_3,
+                     wr_4 = :wr_4,
+                     wr_5 = :wr_5,
+                     wr_6 = :wr_6,
+                     wr_7 = :wr_7,
+                     wr_8 = :wr_8,
+                     wr_9 = :wr_9,
+                     wr_10= :wr_10
                      {$sql_ip}
                      {$sql_password}
-              where wr_id = '{$wr['wr_id']}' ";
-      $this->sql_query($sql);
+              where wr_id = :wr_id";
+      $this->pdo_query($sql,
+      array(
+        "ca_name"=>$ca_name,
+        "wr_option"=>$wr_option,
+        "wr_subject"=>$wr_subject,
+        "wr_content"=>$wr_content,
+        "wr_seo_title"=>$wr_seo_title,
+        "wr_link1"=>$wr_link1,
+        "wr_link2"=>$wr_link2,
+        "mb_id"=>$mb_id,
+        "wr_name"=>$wr_name,
+        "wr_email"=>$wr_email,
+        "wr_homepage"=>$wr_homepage,
+        "wr_1" => $wr_1,
+        "wr_2" => $wr_2,
+        "wr_3" => $wr_3,
+        "wr_4" => $wr_4,
+        "wr_5" => $wr_5,
+        "wr_6" => $wr_6,
+        "wr_7" => $wr_7,
+        "wr_8" => $wr_8,
+        "wr_9" => $wr_9,
+        "wr_10" => $wr_10,
+        "wr_id" => $wr['wr_id'],
+      ));
 
       // 분류가 수정되는 경우 해당되는 코멘트의 분류명도 모두 수정함
       // 코멘트의 분류를 수정하지 않으면 검색이 제대로 되지 않음
@@ -456,7 +505,7 @@ trait write_update{
         if (isset($_POST['bf_file_del'][$i]) && $_POST['bf_file_del'][$i]) {
           $upload[$i]['del_check'] = true;
 
-          $row = $this->sql_fetch(" select * from {$g5['board_file_table']} where bo_table = '{$bo_table}' and wr_id = '{$wr_id}' and bf_no = '{$i}' ");
+          $row = $this->pdo_fetch(" select * from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = ':wr_id and bf_no = :bf_no ", array("bo_table"=>$bo_table, "wr_id"=>$wr_id, "bf_no"=>$i));
 
           $delete_file = run_replace('delete_file_path', G5_DATA_PATH.'/file/'.$bo_table.'/'.str_replace('../', '', $row['bf_file']), $row);
           if( file_exists($delete_file) ){
@@ -513,7 +562,7 @@ trait write_update{
           // 4.00.11 - 글답변에서 파일 업로드시 원글의 파일이 삭제되는 오류를 수정
           if ($w == 'u') {
             // 존재하는 파일이 있다면 삭제합니다.
-            $row = $this->sql_fetch("SELECT * FROM {$g5['board_file_table']} WHERE bo_table = '{$bo_table}' AND wr_id = '{$wr_id}' AND bf_no = '{$i}' ");
+            $row = $this->pdo_fetch(" select * from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = ':wr_id and bf_no = :bf_no ", array("bo_table"=>$bo_table, "wr_id"=>$wr_id, "bf_no"=>$i));
             
             if(isset($row['bf_file']) && $row['bf_file']){
               $delete_file = run_replace('delete_file_path', G5_DATA_PATH.'/file/'.$bo_table.'/'.str_replace('../', '', $row['bf_file']), $row);
@@ -563,53 +612,91 @@ trait write_update{
       $bf_height = isset($upload[$i]['image'][1]) ? (int) $upload[$i]['image'][1] : 0;
       $bf_type = isset($upload[$i]['image'][2]) ? (int) $upload[$i]['image'][2] : 0;
 
-      $row = $this->sql_fetch(" select count(*) as cnt from {$g5['board_file_table']} where bo_table = '{$bo_table}' and wr_id = '{$wr_id}' and bf_no = '{$i}' ");
+      $row = $this->pdo_fetch(" select count(*) as cnt from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = ':wr_id and bf_no = :bf_no ", array("bo_table"=>$bo_table, "wr_id"=>$wr_id, "bf_no"=>$i));
       if ($row['cnt']) {
         // 삭제에 체크가 있거나 파일이 있다면 업데이트를 합니다.
         // 그렇지 않다면 내용만 업데이트 합니다.
         if ($upload[$i]['del_check'] || $upload[$i]['file']) {
           $sql = " update {$g5['board_file_table']}
-                  set bf_source = '{$upload[$i]['source']}',
-                        bf_file = '{$upload[$i]['file']}',
-                        bf_content = '{$bf_content[$i]}',
-                        bf_fileurl = '{$upload[$i]['fileurl']}',
-                        bf_thumburl = '{$upload[$i]['thumburl']}',
-                        bf_storage = '{$upload[$i]['storage']}',
-                        bf_filesize = '".(int)$upload[$i]['filesize']."',
-                        bf_width = '".$bf_width."',
-                        bf_height = '".$bf_height."',
-                        bf_type = '".$bf_type."',
-                        bf_datetime = '".G5_TIME_YMDHIS."'
-                  where bo_table = '{$bo_table}'
-                        and wr_id = '{$wr_id}'
-                        and bf_no = '{$i}' ";
-          $this->sql_query($sql);
+                  set bf_source = :bf_source,
+                        bf_file = :bf_file,
+                        bf_content = :bf_content,
+                        bf_fileurl = :bf_fileurl,
+                        bf_thumburl = bf_thumburl,
+                        bf_storage = :bf_storage,
+                        bf_filesize = :bf_filesize,
+                        bf_width = :bf_width,
+                        bf_height = :bf_height,
+                        bf_type = :bf_type,
+                        bf_datetime = :bf_datetime
+                  where bo_table = :bo_table
+                        and wr_id = :wr_id
+                        and bf_no = :bf_no";
+          $this->pdo_query($sql, 
+          array(
+            "bf_source" => $upload[$i]['source'],
+            "bf_file" => $upload[$i]['file'],
+            "bf_content" => $bf_content[$i],
+            "bf_fileurl" => $upload[$i]['fileurl'],
+            "bf_thumburl" => $upload[$i]['thumburl'],
+            "bf_storage" => $upload[$i]['storage'],
+            "bf_filesize" => (int)$upload[$i]['filesize'],
+            "bf_width" => $bf_width,
+            "bf_height" => $bf_height,
+            "bf_type" => $bf_type,
+            "bf_datetime" => G5_TIME_YMDHIS,
+            "bo_table" => $bo_table,
+            "wr_id" => $wr_id,
+            "bf_no" => $i,
+          ));
         } else {
           $sql = " update {$g5['board_file_table']}
-                    set bf_content = '{$bf_content[$i]}'
-                    where bo_table = '{$bo_table}'
-                              and wr_id = '{$wr_id}'
-                              and bf_no = '{$i}' ";
-          $this->sql_query($sql);
+                    set bf_content = :bf_content
+                    where bo_table = :bo_table
+                              and wr_id = :wr_id
+                              and bf_no = :bf_no";
+          $this->pdo_query($sql,
+            array(
+              "bf_content"=>$bf_content[$i],
+              "bo_table" => $bo_table,
+              "wr_id" => $wr_id,
+              "bf_no" => $i,
+          ));
         }
       } else {
         $sql = " insert into {$g5['board_file_table']}
-                set bo_table = '{$bo_table}',
-                    wr_id = '{$wr_id}',
-                    bf_no = '{$i}',
-                    bf_source = '{$upload[$i]['source']}',
-                    bf_file = '{$upload[$i]['file']}',
-                    bf_content = '{$bf_content[$i]}',
-                    bf_fileurl = '{$upload[$i]['fileurl']}',
-                    bf_thumburl = '{$upload[$i]['thumburl']}',
-                    bf_storage = '{$upload[$i]['storage']}',
+                set bo_table = :bo_table,
+                    wr_id = :wr_id,
+                    bf_no = :i,
+                    bf_source = :bf_source,
+                    bf_file = :bf_file,
+                    bf_content = :bf_content,
+                    bf_fileurl = :bf_fileurl,
+                    bf_thumburl = :bf_thumburl,
+                    bf_storage = :bf_storage,
                     bf_download = 0,
-                    bf_filesize = '".(int)$upload[$i]['filesize']."',
-                    bf_width = '".$bf_width."',
-                    bf_height = '".$bf_height."',
-                    bf_type = '".$bf_type."',
-                    bf_datetime = '".G5_TIME_YMDHIS."' ";
-          $this->sql_query($sql);
+                    bf_filesize = :bf_filesize,
+                    bf_width = :bf_width,
+                    bf_height = :bf_height,
+                    bf_type = :bf_type,
+                    bf_datetime = :bf_datetime";
+          $this->pdo_query($sql,
+            array(
+              "bo_table" => $bo_table,
+              "wr_id" => $wr_id,
+              "bf_no" => $i,
+              "bf_source" => $upload[$i]['source'],
+              "bf_file" => $upload[$i]['file'],
+              "bf_content" => $bf_content[$i],
+              "bf_fileurl" => $upload[$i]['fileurl'],
+              "bf_thumburl" => $upload[$i]['thumburl'],
+              "bf_storage" => $upload[$i]['storage'],
+              "bf_filesize" => (int)$upload[$i]['filesize'],
+              "bf_width" => $bf_width,
+              "bf_height" => $bf_height,
+              "bf_type" => $bf_type,
+              "bf_datetime" => G5_TIME_YMDHIS,
+          ));
 
           run_event('write_update_file_insert', $bo_table, $wr_id, $upload[$i], $w);;
       }
@@ -617,23 +704,23 @@ trait write_update{
 
     // 업로드된 파일 내용에서 가장 큰 번호를 얻어 거꾸로 확인해 가면서
     // 파일 정보가 없다면 테이블의 내용을 삭제합니다.
-    $row = $this->sql_fetch(" select max(bf_no) as max_bf_no from {$g5['board_file_table']} where bo_table = '{$bo_table}' and wr_id = '{$wr_id}' ");
+    $row = $this->pdo_fetch(" select max(bf_no) as max_bf_no from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = :wr_id ", array("bo_table"=>$bo_table, "wr_id"=>$wr_id));
     for ($i=(int)$row['max_bf_no']; $i>=0; $i--) {
-      $row2 = $this->sql_fetch(" select bf_file from {$g5['board_file_table']} where bo_table = '{$bo_table}' and wr_id = '{$wr_id}' and bf_no = '{$i}' ");
+      $row2 = $this->pdo_fetch(" select bf_file from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = :wr_id and bf_no = :bf_no ", array("bo_table"=>$bo_table, "wr_id"=>$wr_id, "bf_no"=>$i));
 
       // 정보가 있다면 빠집니다.
       if ($row2['bf_file']) break;
 
       // 그렇지 않다면 정보를 삭제합니다.
-      $this->sql_query(" delete from {$g5['board_file_table']} where bo_table = '{$bo_table}' and wr_id = '{$wr_id}' and bf_no = '{$i}' ");
+      $this->pdo_query(" delete from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = :wr_id and bf_no = :bf_no ",array("bo_table"=>$bo_table, "wr_id"=>$wr_id, "bf_no"=>$i));
     }
 
     // 파일의 개수를 게시물에 업데이트 한다.
-    $row = $this->sql_fetch(" select count(*) as cnt from {$g5['board_file_table']} where bo_table = '{$bo_table}' and wr_id = '{$wr_id}' ");
-    $this->sql_query(" update {$write_table} set wr_file = '{$row['cnt']}' where wr_id = '{$wr_id}' ");
+    $row = $this->pdo_fetch(" select count(*) as cnt from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = :wr_id ", array("bo_table"=>$bo_table, "wr_id"=>$wr_id));
+    $this->pdo_query(" update {$write_table} set wr_file = :wr_file where wr_id = :wr_id ", array("wr_file"=>$row['cnt'], "wr_id"=>$wr_id));
 
     // 자동저장된 레코드를 삭제한다.
-    $this->sql_query(" delete from {$g5['autosave_table']} where as_uid = '{$uid}' ");
+    $this->pdo_query(" delete from {$g5['autosave_table']} where as_uid = :as_uid ", array("as_uid"=>$uid));
     //------------------------------------------------------------------------------
 
     // 비밀글이라면 세션에 비밀글의 아이디를 저장한다. 자신의 글은 다시 비밀번호를 묻지 않기 위함

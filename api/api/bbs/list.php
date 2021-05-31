@@ -73,7 +73,7 @@ trait bbs_list {
 
       // 가장 작은 번호를 얻어서 변수에 저장 (하단의 페이징에서 사용)
       $sql = "SELECT MIN(wr_num) as min_wr_num FROM {$write_table}";
-      $row = $this->sql_fetch($sql);
+      $row = $this->pdo_fetch($sql);
       $min_spt = (int)$row['min_wr_num'];
 
       if (!$spt) $spt = $min_spt;
@@ -83,7 +83,7 @@ trait bbs_list {
       // 원글만 얻는다. (코멘트의 내용도 검색하기 위함)
       // 라엘님 제안 코드로 대체 http://sir.kr/g5_bug/2922
       $sql = "SELECT COUNT(DISTINCT `wr_parent`) AS `cnt` FROM {$write_table} WHERE {$sql_search}";
-      $row = $this->sql_fetch($sql);
+      $row = $this->pdo_fetch($sql);
       $total_count = $row['cnt'];
       /*
       $sql = " select distinct wr_parent from {$write_table} where {$sql_search} ";
@@ -125,7 +125,7 @@ trait bbs_list {
       for ($k=0; $k<$board_notice_count; $k++) {
         if (trim($arr_notice[$k]) == '') continue;
 
-        $row = $this->sql_fetch("select * from {$write_table} where wr_id = '?'", [$arr_notice[$k]]);
+        $row = $this->pdo_fetch("select * from {$write_table} where wr_id = :arr_notice", array("arr_notice" => $arr_notice[$k]));
 
         if (!$row['wr_id']) continue;
 
@@ -133,7 +133,7 @@ trait bbs_list {
 
         if($k < $from_notice_idx) continue;
 
-        $list[$i] = $this->get_list($row, $board, $board_skin_url, G5_IS_MOBILE ? $board['bo_mobile_subject_len'] : $board['bo_subject_len']);
+        $list[$i] = $this->get_list($row, $board, $board_skin_url, $this->is_mobile() ? $board['bo_mobile_subject_len'] : $board['bo_subject_len']);
         $list[$i]['is_notice'] = true;
         $list[$i]['num'] = 0;
         $i++;
@@ -223,7 +223,7 @@ trait bbs_list {
         $row = $result[$j];
         // 검색일 경우 wr_id만 얻었으므로 다시 한행을 얻는다
         if ($is_search_bbs)
-          $row = $this->sql_fetch(" select * from {$write_table} where wr_id = ?", [$row['wr_parent']]);
+          $row = $this->pdo_fetch(" select * from {$write_table} where wr_id = :wr_parent", array("wr_parent"=>$row['wr_parent']));
 
         $list[$i] = $this->get_list($row, $board, $board_skin_url, $this->is_mobile() ? $board['bo_mobile_subject_len'] : $board['bo_subject_len']);
         if (strstr($sfl, 'subject')) {

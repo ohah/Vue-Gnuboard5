@@ -37,7 +37,7 @@ trait board {
           ;
         } else {
           // 그룹접근        
-          $row = $this->sql_fetch("SELECT count(*) as cnt FROM {$g5['group_member_table']} WHERE gr_id = ? AND mb_id = ?", [$board['gr_id'], $member['mb_id']]);
+          $row = $this->pdo_fetch("SELECT count(*) as cnt FROM {$g5['group_member_table']} WHERE gr_id = :gr_id AND mb_id = :mb_id", array("gr_id"=>$board['gr_id'], "mb_id"=>$member['mb_id']));
           if (!$row['cnt']) {
             $this->alert('접근 권한이 없으므로 글읽기가 불가합니다.\r\n궁금하신 사항은 관리자에게 문의 바랍니다.');
           }
@@ -88,7 +88,7 @@ trait board {
           // 회원이 관리자가 올린 답변글을 바로 볼 수 없던 오류를 수정
           $is_owner = false;
           if ($write['wr_reply'] && $member['mb_id']) {
-            $row = $this->sql_fetch("SELECT mb_id {$write_table} WHERE wr_num = ? AND wr_reply = ? AND wr_is_comment = ?", [$write['wr_num'], '', '0']);
+            $row = $this->pdo_fetch("SELECT mb_id {$write_table} WHERE wr_num = :wr_num AND wr_reply = '' AND wr_is_comment = '0'", array("wr_num" => $write['wr_num']));
             if ($row['mb_id'] === $member['mb_id']) $is_owner = true;
           }
           $ss_name = 'ss_secret_'.$bo_table.'_'.$write['wr_num'];

@@ -12,7 +12,7 @@ trait get_datalib {
       return $cache;
     }
 
-    $cache = run_replace('get_config', $this->sql_fetch("SELECT * FROM {$g5['config_table']}"));
+    $cache = run_replace('get_config', $this->pdo_fetch("SELECT * FROM {$g5['config_table']}"));
     return $cache;
   }
 
@@ -30,9 +30,10 @@ trait get_datalib {
       $cache_file_name = "{$type}-{$co_id}-".g5_cache_secret_key();
       $co = g5_get_cache($cache_file_name, 10800);
       if( $co === false ){
-        $sql = " select * from {$g5['content_table']} where co_id = '$co_id' ";
-        $co = $this->sql_fetch($sql);
-
+        $sql = " select * from {$g5['content_table']} where co_id = :co_id";
+        $co = $this->pdo_fetch($sql,
+          array("co_id"=>$co_id)
+        );
         g5_set_cache($cache_file_name, $co, 10800);
       }
 
@@ -47,7 +48,7 @@ trait get_datalib {
     $boards = run_replace('get_board_names_cache', $boards);
     if(!$boards ){
       $sql = " select bo_table from {$g5['board_table']} ";
-      $result = $this->sql_query("SELECT bo_table FROM {$g5['board_table']}");
+      $result = $this->pdo_query("SELECT bo_table FROM {$g5['board_table']}");
       for($i=0;$i<count($result);$i++) {
         $boards[] = $result[$i]['bo_table'];
       }
@@ -69,7 +70,7 @@ trait get_datalib {
     }
 
     if( !($cache[$key] = run_replace('get_board_db', array(), $bo_table)) ){
-      $board = $this->sql_fetch("SELECT * FROM {$g5['board_table']} WHERE bo_table = ?", [$bo_table]);
+      $board = $this->pdo_fetch("SELECT * FROM {$g5['board_table']} WHERE bo_table = :bo_table", array("bo_table" => $bo_table));
       $board_defaults = array('bo_table'=>'', 'bo_skin'=>'', 'bo_mobile_skin'=>'', 'bo_upload_count' => 0, 'bo_use_dhtml_editor'=>'', 'bo_subject'=>'', 'bo_image_width'=>0);
       $cache[$key] = array_merge($board_defaults, (array) $board);
     }
@@ -93,7 +94,7 @@ trait get_datalib {
                 where $where
                 and length(me_code) = '2'
                 order by me_order, me_id ";
-      $row = $this->sql_query($sql);      
+      $row = $this->pdo_query($sql);      
       for($i=0;$i<count($row);$i++) {
         $row[$i]['ori_me_link'] = $row[$i]['me_link'];
         $row[$i]['me_link'] = $this->short_url_clean($row[$i]['me_link']);
@@ -103,9 +104,9 @@ trait get_datalib {
         from {$g5['menu_table']}
         where $where
         and length(me_code) = '4'
-        and substring(me_code, 1, 2) = '{$row[$i]['me_code']}'
+        and substring(me_code, 1, 2) = :me_code
         order by me_order, me_id ";
-        $row2 = $this->sql_query($sql2);
+        $row2 = $this->pdo_query($sql2, array("me_code"=>$row[$i]['me_code']));
         for($k=0;$k<count($row2);$k++) {
           $row2[$k]['ori_me_link'] = $row2[$k]['me_link'];
           $row2[$k]['me_link'] = $this->short_url_clean($row2[$k]['me_link']);
@@ -134,7 +135,7 @@ trait get_datalib {
       return $cache[$key];
     }
     $sql = " select * from {$write_table} where $where_field = '".$where_value."' ";
-    $cache[$key] = $this->sql_fetch($sql);
+    $cache[$key] = $this->pdo_fetch($sql);
     if( $type === 'content' ){  
       $g5_object->set($type, $cache[$key]['co_id'], $cache[$key], 'content');
     } else {
@@ -159,9 +160,9 @@ trait get_datalib {
     }
 
     $sql = " select $fields from {$g5['board_file_table']}
-                where bo_table = '$bo_table' and wr_id = '$wr_id' $add_where order by bf_no limit 0, 1 ";
+                where bo_table = :bo_table and wr_id = :wr_id $add_where order by bf_no limit 0, 1 ";
 
-    $cache[$key] = $this->sql_fetch($sql);
+    $cache[$key] = $this->pdo_fetch($sql, array("bo_table"=>$bo_table, "wr_id"=>$wr_id));
 
     return $cache[$key];
   }
@@ -177,9 +178,9 @@ trait get_datalib {
       return $cache[$key];
     }
 
-    $sql = " select * from {$g5['poll_table']} where po_id = '{$po_id}' ";
+    $sql = " select * from {$g5['poll_table']} where po_id = :po_id ";
 
-    $cache[$key] = $this->sql_fetch($sql);
+    $cache[$key] = $this->pdo_fetch($sql, array("po_id"=>$po_id));
 
     return $cache[$key];
   }
@@ -195,9 +196,9 @@ trait get_datalib {
       return $cache[$key];
     }
 
-    $sql = " select * from {$g5['point_table']} where po_id = '{$po_id}' ";
+    $sql = " select * from {$g5['point_table']} where po_id = :po_id ";
 
-    $cache[$key] = $this->sql_fetch($sql);
+    $cache[$key] = $this->pdo_fetch($sql, array("po_id"=>$po_id));
 
     return $cache[$key];
   }
@@ -214,9 +215,9 @@ trait get_datalib {
         return $cache[$key];
     }
 
-    $sql = " select * from {$g5['mail_table']} where ma_id = '{$ma_id}' ";
+    $sql = " select * from {$g5['mail_table']} where ma_id = :ma_id ";
 
-    $cache[$key] = $this->sql_fetch($sql);
+    $cache[$key] = $this->pdo_fetch($sql, array("ma_id"=>$ma_id));
 
     return $cache[$key];
   }
@@ -233,9 +234,9 @@ trait get_datalib {
         return $cache[$key];
     }
 
-    $sql = " select * from {$g5['qa_content_table']} where qa_id = '{$qa_id}' ";
+    $sql = " select * from {$g5['qa_content_table']} where qa_id = :qa_id ";
 
-    $cache[$key] = $this->sql_fetch($sql);
+    $cache[$key] = $this->pdo_fetch($sql, array("qa_id"=>$qa_id));
 
     return $cache[$key];
   }
@@ -390,8 +391,8 @@ trait get_datalib {
   public function get_memo_not_read($mb_id, $add_where='') {
     global $g5;
 
-    $sql = " SELECT count(*) as cnt FROM {$g5['memo_table']} WHERE me_recv_mb_id = '$mb_id' and me_type= 'recv' and me_read_datetime like '0%' $add_where ";
-    $row = $this->sql_fetch($sql);
+    $sql = " SELECT count(*) as cnt FROM {$g5['memo_table']} WHERE me_recv_mb_id = :mb_id and me_type= 'recv' and me_read_datetime like '0%' $add_where ";
+    $row = $this->pdo_fetch($sql, array("mb_id"=>$mb_id));
 
     return isset($row['cnt']) ? $row['cnt'] : 0;
   }
@@ -402,7 +403,7 @@ trait get_datalib {
     $add_where = $mb_id ? " and mb_id = '$mb_id' " : '';
 
     $sql = " select count(*) as cnt from {$g5['scrap_table']} where 1=1 $add_where";
-    $row = $this->sql_fetch($sql);
+    $row = $this->pdo_fetch($sql);
 
     return isset($row['cnt']) ? $row['cnt'] : 0;
   }

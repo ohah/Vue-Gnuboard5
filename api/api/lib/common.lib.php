@@ -159,6 +159,44 @@ class Commonlib {
     }
     return $str;
   }
+  public function pdo_query($query, $condition='') {
+    try {
+      $stmt = $this->db->prepare($query);
+      if($condition) {
+        $condition = $this->pdo_bindValue($condition);
+        foreach ($condition as $key => $value) {
+          $stmt->bindValue(":".$key,$value, PDO::PARAM_STR);
+        }
+      }
+      $stmt->execute();
+      $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      return $result;
+    } catch(PDOException $e) {
+      return $e->getMessage();
+    }
+  }
+  public function pdo_bindValue($data = array()) {
+    $result = new stdClass;
+    foreach ($data as $key => $value) {
+      $result->$key = $value;
+    }
+    return $result;
+  }
+  public function pdo_fetch($query, $condition='') {
+    try {
+      $stmt = $this->db->prepare($query);
+      if($condition) {
+        $condition = $this->pdo_bindValue($condition);
+        foreach ($condition as $key => $value) {
+          $stmt->bindValue(":".$key,$value, PDO::PARAM_STR);
+        }
+      }
+      $stmt->execute();
+      return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch(PDOException $e) {
+      return $e->getMessage();
+    }
+  }
   public function sql_query($query, $condition=array()) {
     try {
       $stmt = $this->db->prepare($query);
@@ -370,7 +408,7 @@ class Commonlib {
   function autosave_count($mb_id){
     global $g5;
     if ($mb_id) {
-      $row = $this->sql_fetch("SELECT count(*) as cnt FROM {$g5['autosave_table']} WHERE mb_id = ?",[$mb_id]);
+      $row = $this->pdo_fetch("SELECT count(*) as cnt FROM {$g5['autosave_table']} WHERE mb_id = :mb_id",array("mb_id"=>$mb_id));
       return (int)$row['cnt'];
     } else {
       return 0;
@@ -614,8 +652,8 @@ class Commonlib {
     $config = $this->config;
     global $g5;
 
-    $sql = " select mb_name, mb_nick, mb_ip, mb_recommend, mb_memo, mb_level from {$g5['member_table']} where mb_id= ?";
-    $mb = $this->sql_fetch($sql, [$mb_id]);
+    $sql = " select mb_name, mb_nick, mb_ip, mb_recommend, mb_memo, mb_level from {$g5['member_table']} where mb_id= :mb_id";
+    $mb = $this->pdo_fetch($sql, array("mb_id"=>$mb_id));
 
     // 이미 삭제된 회원은 제외
     if(preg_match('#^[0-9]{8}.*삭제함#', $mb['mb_memo']))
@@ -633,25 +671,25 @@ class Commonlib {
     $this->sql_query($sql);
 
     // 포인트 테이블에서 삭제
-    $this->sql_query(" delete from {$g5['point_table']} where mb_id = ?",[$mb_id]);
+    $this->pdo_query(" delete from {$g5['point_table']} where mb_id = :mb_id",array("mb_id"=>$mb_id));
 
     // 그룹접근가능 삭제
-    $this->sql_query(" delete from {$g5['group_member_table']} where mb_id = ? ", [$mb_id]);
+    $this->pdo_query(" delete from {$g5['group_member_table']} where mb_id = :mb_id ", array("mb_id"=>$mb_id));
 
     // 쪽지 삭제
-    $this->sql_query(" delete from {$g5['memo_table']} where me_recv_mb_id = ? or me_send_mb_id = ? ", [$mb_id, $mb_id]);
+    $this->pdo_query(" delete from {$g5['memo_table']} where me_recv_mb_id = :me_recv_mb_id or me_send_mb_id = :me_send_mb_id ", array("me_recv_mb_id"=>$mb_id,"me_send_mb_id"=>$mb_id));
 
     // 스크랩 삭제
-    $this->sql_query(" delete from {$g5['scrap_table']} where mb_id = ? ", [$mb_id]);
+    $this->pdo_query(" delete from {$g5['scrap_table']} where mb_id = :mb_id ", array("mb_id"=>$mb_id));
 
     // 관리권한 삭제
-    $this->sql_query(" delete from {$g5['auth_table']} where mb_id = ? ", [$mb_id]);
+    $this->pdo_query(" delete from {$g5['auth_table']} where mb_id = :mb_id ", array("mb_id"=>$mb_id));
 
     // 그룹관리자인 경우 그룹관리자를 공백으로
-    $this->sql_query(" update {$g5['group_table']} set gr_admin = '' where gr_admin = ? ", [$mb_id]);
+    $this->pdo_query(" update {$g5['group_table']} set gr_admin = '' where gr_admin = :mb_id ", array("mb_id"=>$mb_id));
 
     // 게시판관리자인 경우 게시판관리자를 공백으로
-    $this->sql_query(" update {$g5['board_table']} set bo_admin = '' where bo_admin = ? ", [$mb_id]);
+    $this->pdo_query(" update {$g5['board_table']} set bo_admin = '' where bo_admin = :mb_id ", array("mb_id"=>$mb_id));
 
     //소셜로그인에서 삭제 또는 해제
     if(function_exists('social_member_link_delete')){
@@ -985,8 +1023,8 @@ class Commonlib {
     $wr_bo_table = preg_replace('/^'.preg_quote($g5['write_prefix']).'/i', '', $write_table);
     $write = $g5_object->get('bbs', $wr_id, $wr_bo_table);
     if( !$write || $is_cache == false ){
-      $sql = "SELECT * FROM {$write_table} WHERE wr_id = ?";
-      $write = $this->sql_fetch($sql, [$wr_id]);
+      $sql = "SELECT * FROM {$write_table} WHERE wr_id = :wr_id";
+      $write = $this->pdo_fetch($sql, array("wr_id"=>$wr_id));
       $g5_object->set('bbs', $wr_id, $write, $wr_bo_table);
     }
     return $write;
@@ -1078,9 +1116,9 @@ class Commonlib {
     if( $is_cache && isset($cache[$key]) ){
       return $cache[$key];
     }
-    $sql = " select * from {$g5['group_table']} where gr_id = ?";
+    $sql = " select * from {$g5['group_table']} where gr_id = :gr_id";
 
-    $group = run_replace('get_group', $this->sql_fetch($sql, [$gr_id]), $gr_id, $is_cache);
+    $group = run_replace('get_group', $this->pdo_fetch($sql, array("gr_id"=>$gr_id)), $gr_id, $is_cache);
     $cache[$key] = array_merge(array('gr_device'=>'', 'gr_subject'=>''), (array) $group);
 
     return $cache[$key];
@@ -1109,8 +1147,8 @@ class Commonlib {
           $this->sql_query($sql);
         }    
         $new_password = create_hash($pass);
-        $sql = "UPDATE {$g5['member_table']} SET mb_password = ?, mb_password2 = ? WHERE mb_id = ?";
-        $this->sql_query($sql, [$new_password, $hash, $mb_id]);
+        $sql = "UPDATE {$g5['member_table']} SET mb_password = :new_password, mb_password2 = :hash_ WHERE mb_id = :mb_id";
+        $this->pdo_query($sql, array("new_password"=>$new_password, "hash_" => $hash, "mb_id" => $mb_id));
         return true;
       }
     }
@@ -1330,18 +1368,31 @@ class Commonlib {
     $po_mb_point = $mb_point + $point;
 
     $sql = "INSERT INTO {$g5['point_table']}
-            SET mb_id = ?,
-            po_datetime = ?,
-            po_content = ?,
-            po_point = ?,
-            po_use_point = ?,
-            po_mb_point = ?,
-            po_expired = ?,
-            po_expire_date = ?,
-            po_rel_table = ?,
-            po_rel_id = ?,
-            po_rel_action = ?";
-    $this->sql_query($sql, [$mb_id, G5_TIME_YMDHIS, addslashes($content), $point, '0', $po_mb_point, $po_expired, $po_expire_date, $rel_table, $rel_id, $rel_action]);
+            SET mb_id = :mb_id,
+            po_datetime = :po_datetime,
+            po_content = :po_content,
+            po_point = :po_point,
+            po_use_point = :po_use_point,
+            po_mb_point = :po_mb_point,
+            po_expired = :po_expired,
+            po_expire_date = :po_expire_date,
+            po_rel_table = :po_rel_table,
+            po_rel_id = :po_rel_id,
+            po_rel_action = :po_rel_action";
+    $this->pdo_query($sql, 
+      array(
+        "mb_id"=>$mb_id,
+        "po_datetime"=>G5_TIME_YMDHIS, 
+        "po_content"=>addslashes($content), 
+        "po_point"=>$point, 
+        "po_use_point"=>'0', 
+        "po_mb_point"=>$po_mb_point, 
+        "po_expired"=>$po_expired, 
+        "po_expire_date"=>$po_expire_date, 
+        "po_rel_table"=>$rel_table, 
+        "po_rel_id"=>$rel_id, 
+        "po_rel_action"=>$rel_action
+    ));
 
     // 포인트를 사용한 경우 포인트 내역에 사용금액 기록
     if($point < 0) {
@@ -1349,7 +1400,7 @@ class Commonlib {
     }
 
     // 포인트 UPDATE
-    $this->sql_query("UPDATE {$g5['member_table']} SET mb_point = ? WHERE mb_id = ?",[$po_mb_point, $mb_id]);
+    $this->pdo_query("UPDATE {$g5['member_table']} SET mb_point = :po_mb_point WHERE mb_id = :mb_id",array("po_mb_point"=>$po_mb_point, "mb_id"=>$mb_id));
 
     return 1;
   }
@@ -1443,12 +1494,12 @@ class Commonlib {
     $point1 = abs($point);
     $sql = "SELECT po_id, po_point, po_use_point
             FROM {$g5['point_table']}
-            WHERE mb_id = ?
-            AND po_id <> ?
-            AND po_expired = ?
-            AND ?
+            WHERE mb_id = :mb_id
+            AND po_id <> :po_id
+            AND po_expired = '0'
+            AND po_point > po_use_point
             $sql_order ";
-    $result = $this->sql_query($sql, [$mb_id, $po_id, '0', 'po_point > po_use_point']);
+    $result = $this->pdo_query($sql, array("mb_id"=>$mb_id, "po_id"=>$po_id));
     for($i=0; $i<count($result); $i++) {
       $row = $result[$i];
       $point2 = $row['po_point'];
@@ -1456,18 +1507,17 @@ class Commonlib {
 
       if(($point2 - $point3) > $point1) {
         $sql = "UPDATE {$g5['point_table']}
-                SET po_use_point = ?
-                WHERE po_id = ?";
-        sql_query($sql);
-        $this->sql_query($sql, ['po_use_point + '.$point1, $row['po_id']]);
+                SET po_use_point = :po_use_point
+                WHERE po_id = :po_id";
+        $this->pdo_query($sql, array("po_use_point"=>'po_use_point + '.$point1, "po_id"=>$row['po_id']));
         break;
       } else {
         $point4 = $point2 - $point3;
         $sql = "UPDATE {$g5['point_table']}
-                SET po_use_point = ?,
-                    po_expired = ?'
-                WHERE po_id = ?";
-        $this->sql_query($sql, ['po_use_point + '.$point4, '100', $row['po_id']]);
+                SET po_use_point = :po_use_point,
+                    po_expired = :po_expired'
+                WHERE po_id = :po_id";
+        $this->pdo_query($sql, array("po_use_point"=>'po_use_point + '.$point4, "po_expired"=>'100', "po_id"=>$row['po_id']));
         $point1 -= $point4;
       }
     }
@@ -1486,11 +1536,11 @@ class Commonlib {
     $point1 = abs($point);
     $sql = "SELECT po_id, po_use_point, po_expired, po_expire_date
             FROM {$g5['point_table']}
-            WHERE mb_id = ?
-            AND ?
-            AND ?
+            WHERE mb_id = :mb_id
+            AND po_expired <> '1'
+            AND po_use_point > 0
             $sql_order ";
-    $result = $this->sql_query($sql, [$mb_id, "po_expired <> '1'", "po_use_point > 0"]);
+    $result = $this->pdo_query($sql, array("mb_id"=>$mb_id));
     for($i=0; $i<count($result); $i++) {
       $row = $result[$i];
       $point2 = $row['po_use_point'];
@@ -1501,17 +1551,17 @@ class Commonlib {
 
       if($point2 > $point1) {
         $sql = "UPDATE {$g5['point_table']}
-                SET po_use_point = ?,
-                    po_expired = ?
-                WHERE po_id = ?";
-        $this->sql_query($sql, ["po_use_point - '$point1'", $po_expired, $row['po_id']]);
+                SET po_use_point = :po_use_point,
+                    po_expired = :po_expired
+                WHERE po_id = :po_id";
+        $this->pdo_query($sql, array("po_use_point"=>"po_use_point - '$point1'", "po_expired"=>$po_expired, "po_id" => $row['po_id']));
         break;
       } else {
           $sql = "UPDATE {$g5['point_table']}
-                  SET po_use_point = ?,
-                      po_expired = ?
-                  WHERE po_id = ?";
-          $this->sql_query($sql, ["0", $po_expired, $row['po_id']]);
+                  SET po_use_point = '0',
+                      po_expired = :po_expired
+                  WHERE po_id = :po_id";
+          $this->pdo_query($sql, array("po_expired"=>$po_expired, "po_id"=>$row['po_id']));
           $point1 -= $point2;
       }
     }
@@ -1519,44 +1569,44 @@ class Commonlib {
   
   // 소멸포인트 삭제
   public function delete_expire_point($mb_id, $point) {
-      global $g5;
-      $config = $this->config;
-  
-      $point1 = abs($point);
-      $sql = "SELECT po_id, po_use_point, po_expired, po_expire_date
-              FROM {$g5['point_table']}
-              WHERE mb_id = ?
-              AND po_expired = ?
-              AND po_point >= ?
-              AND po_use_point > ?
-              ORDER BY po_expire_date DESC, po_id DESC";
-      $result = $this->sql_query($sql, [$mb_id, '1', 0, 0]);
-      for($i=0; $i<count($result); $i++) {
-        $row = $result[$i];
-        $point2 = $row['po_use_point'];
-        $po_expired = '0';
-        $po_expire_date = '9999-12-31';
-        if($config['cf_point_term'] > 0)
-          $po_expire_date = date('Y-m-d', strtotime('+'.($config['cf_point_term'] - 1).' days', G5_SERVER_TIME));
+    global $g5;
+    $config = $this->config;
 
-        if($point2 > $point1) {
-          $sql = "UPDATE {$g5['point_table']}
-                  SET po_use_point = po_use_point - ?,
-                      po_expired = ?,
-                      po_expire_date = ?
-                  WHERE po_id = ?";
-          $this->sql_query($sql, [$point1, $po_expired, $po_expire_date, $row['po_id']]);
-          break;
-        } else {
-          $sql = "UPDATE {$g5['point_table']}
-                  SET po_use_point = ?,
-                      po_expired = ?,
-                      po_expire_date = ?
-                  WHERE po_id = ?";
-          $this->sql_query($sql, ['0', $po_expired, $po_expire_date, $row['po_id']]);
-          $point1 -= $point2;
-        }
+    $point1 = abs($point);
+    $sql = "SELECT po_id, po_use_point, po_expired, po_expire_date
+            FROM {$g5['point_table']}
+            WHERE mb_id = :mb_id
+            AND po_expired = '1'
+            AND po_point >= 0
+            AND po_use_point > 0
+            ORDER BY po_expire_date DESC, po_id DESC";
+    $result = $this->pdo_query($sql, array("mb_id"=>$mb_id));
+    for($i=0; $i<count($result); $i++) {
+      $row = $result[$i];
+      $point2 = $row['po_use_point'];
+      $po_expired = '0';
+      $po_expire_date = '9999-12-31';
+      if($config['cf_point_term'] > 0)
+        $po_expire_date = date('Y-m-d', strtotime('+'.($config['cf_point_term'] - 1).' days', G5_SERVER_TIME));
+
+      if($point2 > $point1) {
+        $sql = "UPDATE {$g5['point_table']}
+                SET po_use_point = :po_use_point,
+                    po_expired = :po_expired,
+                    po_expire_date = :po_expire_date
+                WHERE po_id = :po_id";
+        $this->pdo_query($sql, array("po_use_point"=>"po_use_point - $point1", "po_expired"=>$po_expired, "po_expire_date"=>$po_expire_date, "po_id"=>$row['po_id']));
+        break;
+      } else {
+        $sql = "UPDATE {$g5['point_table']}
+                SET po_use_point = '0',
+                    po_expired = :po_expired,
+                    po_expire_date = :po_expire_date
+                WHERE po_id = :po_id";
+        $this->pdo_query($sql, array("po_expired"=>$po_expired, "po_expire_date"=>$po_expire_date, "po_id"=>$row['po_id']));
+        $point1 -= $point2;
       }
+    }
   }
   
   // 회원 정보를 얻는다.

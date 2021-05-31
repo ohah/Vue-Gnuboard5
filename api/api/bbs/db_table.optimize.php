@@ -14,16 +14,16 @@ trait db_optimize {
     // 설정일이 지난 접속자로그 삭제
     if($config['cf_visit_del'] > 0) {
       $tmp_before_date = date("Y-m-d", G5_SERVER_TIME - ($config['cf_visit_del'] * 86400));
-      $sql = "DELETE FROM {$g5['visit_table']} WHERE vi_date < ?";
-      $this->sql_query($sql, [$tmp_before_date]);
+      $sql = "DELETE FROM {$g5['visit_table']} WHERE vi_date < :tmp_before_date";
+      $this->pdo_query($sql, array("tmp_before_date"=>$tmp_before_date));
       $this->sql_query(" OPTIMIZE TABLE `{$g5['visit_table']}`, `{$g5['visit_sum_table']}` ");
     }
 
     // 설정일이 지난 인기검색어 삭제
     if($config['cf_popular_del'] > 0) {
       $tmp_before_date = date("Y-m-d", G5_SERVER_TIME - ($config['cf_popular_del'] * 86400));
-      $sql = "DELETE FROM {$g5['popular_table']} WHERE pp_date < ?";
-      $this->sql_query($sql, [$tmp_before_date]);
+      $sql = "DELETE FROM {$g5['popular_table']} WHERE pp_date < :tmp_before_date";
+      $this->pdo_query($sql, array("tmp_before_date" =>$tmp_before_date));
       $this->sql_query(" OPTIMIZE TABLE `{$g5['popular_table']}` ");
     }
 
@@ -64,7 +64,7 @@ trait db_optimize {
 
     // 실행일 기록
     if(isset($config['cf_optimize_date'])) {
-      $this->sql_query(" update {$g5['config_table']} set cf_optimize_date = ?", [G5_TIME_YMD]);
+      $this->sql_query(" update {$g5['config_table']} set cf_optimize_date = '".G5_TIME_YMD."'");
     }
   }
 }

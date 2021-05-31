@@ -163,27 +163,40 @@ trait scrap {
                          wr_homepage = '$wr_homepage',
                          wr_datetime = '".G5_TIME_YMDHIS."',
                          wr_ip = '{$_SERVER['REMOTE_ADDR']}' ";
-        $this->sql_query($sql);
+        $this->pdo_query($sql,
+        array(
+          "ca_name" => $wr['ca_name'],
+          "wr_num" => $wr['wr_num'],
+          "wr_parent" => $wr_id,
+          "wr_comment" => $row['max_comment'],
+          "wr_content" => $wr_content,
+          "mb_id" => $mb_id,
+          "wr_password" => $wr_password,
+          "wr_name" => $wr_name,
+          "wr_email" => $wr_email,
+          "wr_homepage" => $wr_homepage
+        ));
+        
 
 
         $comment_id = $this->db->lastInsertId();
 
         // 원글에 코멘트수 증가
-        $this->sql_query(" update $write_table set wr_comment = wr_comment + 1 where wr_id = '$wr_id' ");
+        $this->pdo_query(" update $write_table set wr_comment = wr_comment + 1 where wr_id = :wr_id ", array("wr_id"=>$wr_id));
 
         // 새글 INSERT
-        $this->sql_query(" insert into {$g5['board_new_table']} ( bo_table, wr_id, wr_parent, bn_datetime, mb_id ) values ( '$bo_table', '$comment_id', '$wr_id', '".G5_TIME_YMDHIS."', '{$member['mb_id']}' ) ");
+        $this->pdo_query(" insert into {$g5['board_new_table']} ( bo_table, wr_id, wr_parent, bn_datetime, mb_id ) values ( :bo_table, '$comment_id', :wr_id, '".G5_TIME_YMDHIS."', '{$member['mb_id']}' ) ", array("bo_table"=>$bo_table, "wr_id"=>$wr_id));
 
         // 코멘트 1 증가
-        $this->sql_query(" update {$g5['board_table']}  set bo_count_comment = bo_count_comment + 1 where bo_table = '$bo_table' ");
+        $this->pdo_query(" update {$g5['board_table']}  set bo_count_comment = bo_count_comment + 1 where bo_table = :bo_table ", array("bo_table"=>$bo_table));
 
         // 포인트 부여
         $this->insert_point($member['mb_id'], $board['bo_comment_point'], "{$board['bo_subject']} {$wr_id}-{$comment_id} 댓글쓰기(스크랩)", $bo_table, $comment_id, '댓글');
       }
     }
 
-    $sql = " insert into {$g5['scrap_table']} ( mb_id, bo_table, wr_id, ms_datetime ) values ( '{$member['mb_id']}', '$bo_table', '$wr_id', '".G5_TIME_YMDHIS."' ) ";
-    $this->sql_query($sql);
+    $sql = " insert into {$g5['scrap_table']} ( mb_id, bo_table, wr_id, ms_datetime ) values ( '{$member['mb_id']}', :bo_table, :wr_id, '".G5_TIME_YMDHIS."' ) ";
+    $this->pdo_query($sql, array("bo_table"=>$bo_table, "wr_id"=>$wr_id));
 
     $sql = " update `{$g5['member_table']}` set mb_scrap_cnt = '".$this->get_scrap_totals($member['mb_id'])."' where mb_id = '{$member['mb_id']}' ";
     $this->sql_query($sql);
@@ -212,8 +225,8 @@ trait scrap {
     if (!$is_member)
       $this->alert('회원만 이용하실 수 있습니다.');
 
-    $sql = " delete from {$g5['scrap_table']} where mb_id = '{$member['mb_id']}' and ms_id = '$ms_id' ";
-    $this->sql_query($sql);
+    $sql = " delete from {$g5['scrap_table']} where mb_id = '{$member['mb_id']}' and ms_id = :ms_id";
+    $this->pdo_query($sql, array("ms_id"=>$ms_id));
 
     $sql = " update `{$g5['member_table']}` set mb_scrap_cnt = '".$this->get_scrap_totals($member['mb_id'])."' where mb_id = '{$member['mb_id']}' ";
     $this->sql_query($sql);

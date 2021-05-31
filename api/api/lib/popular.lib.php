@@ -9,8 +9,8 @@ trait pupularlib {
     global $g5;
 
     $date_gap = date("Y-m-d", G5_SERVER_TIME - ($date_cnt * 86400));
-    $sql = " select pp_word, count(*) as cnt from {$g5['popular_table']} where pp_date between ? and ? group by pp_word order by cnt desc, pp_word limit 0, $pop_cnt ";
-    $list = $this->sql_query($sql, [$date_gap, G5_TIME_YMD]);
+    $sql = " select pp_word, count(*) as cnt from {$g5['popular_table']} where pp_date between :date_gap and :G5_TIME_YMD group by pp_word order by cnt desc, pp_word limit 0, $pop_cnt ";
+    $list = $this->pdo_query($sql, array("date_gap" => $date_gap, "G5_TIME_YMD"=>G5_TIME_YMD));
 
     return $list;
   }

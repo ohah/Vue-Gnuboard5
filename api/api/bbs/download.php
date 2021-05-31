@@ -35,8 +35,8 @@ trait download {
     if($board['bo_download_point'] < 0 && $is_guest)
       $this->alert('다운로드 권한이 없습니다.\\n회원이시라면 로그인 후 이용해 보십시오.', G5_BBS_URL.'/login.php?wr_id='.$wr_id.'&amp;'.$qstr.'&amp;url='.urlencode($this->get_pretty_url($bo_table, $wr_id)));
 
-    $sql = " select * from {$g5['board_file_table']} where bo_table = ? and wr_id = ? and bf_no = ? ";
-    $file = sql_fetch($sql, [$bo_table, $wr_id, $no]);
+    $sql = " select * from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = :wr_id and bf_no = :no ";
+    $file = pdo_fetch($sql, array("bo_table"=>$bo_table, "wr_id"=>$wr_id, "no"=>$no));
     if (!$file['bf_file'])
       $this->alert('파일 정보가 존재하지 않습니다.');
 
@@ -79,8 +79,8 @@ trait download {
     $ss_name = 'ss_down_'.$bo_table.'_'.$wr_id.'_'.$no;
     if (!$this->get_session($ss_name)) {
       // 다운로드 카운트 증가
-      $sql = " update {$g5['board_file_table']} set bf_download = bf_download + 1 where bo_table = ? and wr_id = ? and bf_no = ?";
-      $this->sql_query($sql, [$bo_table, $wr_id, $no]);
+      $sql = " update {$g5['board_file_table']} set bf_download = bf_download + 1 where bo_table = :bo_table and wr_id = :wr_id and bf_no = :no";
+      $this->pdo_query($sql, array("bo_table"=>$bo_table, "wr_id"=>$wr_id, "no"=>$no));
       // 다운로드 카운트를 증가시키고 세션을 생성
       $_SESSION[$ss_name] = true;
     }

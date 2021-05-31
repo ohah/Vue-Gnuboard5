@@ -163,37 +163,61 @@ trait write_comment_update {
       }
 
       $wr_subject = $this->get_text(stripslashes($wr['wr_subject']));
-
       $sql = " insert into $write_table
-                  set ca_name = '{$wr['ca_name']}',
-                      wr_option = '$wr_secret',
-                      wr_num = '{$wr['wr_num']}',
+                  set ca_name = :ca_name,
+                      wr_option = :wr_option,
+                      wr_num = :wr_num,
                       wr_reply = '',
-                      wr_parent = '$wr_id',
+                      wr_parent = :wr_parent,
                       wr_is_comment = 1,
-                      wr_comment = '$tmp_comment',
-                      wr_comment_reply = '$tmp_comment_reply',
+                      wr_comment = :wr_comment,
+                      wr_comment_reply = :wr_comment_reply,
                       wr_subject = '',
-                      wr_content = '$wr_content',
-                      mb_id = '$mb_id',
-                      wr_password = '$wr_password',
-                      wr_name = '$wr_name',
-                      wr_email = '$wr_email',
-                      wr_homepage = '$wr_homepage',
+                      wr_content = :wr_content,
+                      mb_id = :mb_id,
+                      wr_password = :wr_password,
+                      wr_name = :wr_name,
+                      wr_email = :wr_email,
+                      wr_homepage = :wr_homepage,
                       wr_datetime = '".G5_TIME_YMDHIS."',
                       wr_last = '',
                       wr_ip = '{$_SERVER['REMOTE_ADDR']}',
-                      wr_1 = '$wr_1',
-                      wr_2 = '$wr_2',
-                      wr_3 = '$wr_3',
-                      wr_4 = '$wr_4',
-                      wr_5 = '$wr_5',
-                      wr_6 = '$wr_6',
-                      wr_7 = '$wr_7',
-                      wr_8 = '$wr_8',
-                      wr_9 = '$wr_9',
-                      wr_10 = '$wr_10' ";
-      $this->sql_query($sql);
+                      wr_1 = :wr_1,
+                      wr_2 = :wr_2,
+                      wr_3 = :wr_3,
+                      wr_4 = :wr_4,
+                      wr_5 = :wr_5,
+                      wr_6 = :wr_6,
+                      wr_7 = :wr_7,
+                      wr_8 = :wr_8,
+                      wr_9 = :wr_9,
+                      wr_10 = :wr_10 ";
+      $this->pdo_query($sql,
+      array(
+        "ca_name"=>$wr['ca_name'],
+        "wr_option"=>$wr_secret,
+        "wr_num"=>$wr['wr_num'],
+        "wr_parent"=>$wr_id,
+        "wr_comment"=>$tmp_comment,
+        "wr_comment_reply"=>$tmp_comment_reply,
+        "wr_content"=>$wr_content,
+        "mb_id"=>$mb_id,
+        "wr_password"=>$wr_password,
+        "wr_name"=>$wr_name,
+        "wr_email"=>$wr_email,
+        "wr_homepage"=>$wr_homepage,
+        "wr_homepage"=>$wr_homepage,
+        "wr_1" => $wr_1,
+        "wr_2" => $wr_2,
+        "wr_3" => $wr_3,
+        "wr_4" => $wr_4,
+        "wr_5" => $wr_5,
+        "wr_6" => $wr_6,
+        "wr_7" => $wr_7,
+        "wr_8" => $wr_8,
+        "wr_9" => $wr_9,
+        "wr_10" => $wr_10,
+      ));
 
       $comment_id = $this->db->lastInsertId();
 
@@ -334,23 +358,37 @@ trait write_comment_update {
       $sql_secret = " , wr_option = '$wr_secret' ";
 
     $sql = " update $write_table
-      set wr_subject = '$wr_subject',
-           wr_content = '$wr_content',
-           wr_1 = '$wr_1',
-           wr_2 = '$wr_2',
-           wr_3 = '$wr_3',
-           wr_4 = '$wr_4',
-           wr_5 = '$wr_5',
-           wr_6 = '$wr_6',
-           wr_7 = '$wr_7',
-           wr_8 = '$wr_8',
-           wr_9 = '$wr_9',
-           wr_10 = '$wr_10'
-           $sql_ip
-           $sql_secret
+      set wr_subject = :wr_subject,
+          wr_content = :wr_content,
+          wr_1 = :wr_1,
+          wr_2 = :wr_2,
+          wr_3 = :wr_3,
+          wr_4 = :wr_4,
+          wr_5 = :wr_5,
+          wr_6 = :wr_6,
+          wr_7 = :wr_7,
+          wr_8 = :wr_8,
+          wr_9 = :wr_9,
+          wr_10 = :wr_10
+          $sql_ip
+          $sql_secret
     where wr_id = '$comment_id' ";
 
-    $this->sql_query($sql);
+    $this->pdo_query($sql,
+    array(
+      "wr_subject" => $wr_subject,
+      "wr_content" => $wr_content,
+      "wr_1" => $wr_1,
+      "wr_2" => $wr_2,
+      "wr_3" => $wr_3,
+      "wr_4" => $wr_4,
+      "wr_5" => $wr_5,
+      "wr_6" => $wr_6,
+      "wr_7" => $wr_7,
+      "wr_8" => $wr_8,
+      "wr_9" => $wr_9,
+      "wr_10" => $wr_10,
+    ));
   }
     
   $this->delete_cache_latest($bo_table);

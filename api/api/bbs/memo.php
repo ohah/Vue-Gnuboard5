@@ -36,8 +36,8 @@ trait memo  {
 
     run_event('memo_list', $kind, $unkind, $page);
 
-    $sql = " select count(*) as cnt from {$g5['memo_table']} where me_{$kind}_mb_id = '{$member['mb_id']}' and me_type = '$kind' ";
-    $row = $this->sql_fetch($sql);
+    $sql = " select count(*) as cnt from {$g5['memo_table']} where me_{$kind}_mb_id = '{$member['mb_id']}' and me_type = :kind";
+    $row = $this->pdo_fetch($sql, array("kind"=>$kind));
     $total_count = $row['cnt'];
 
     $total_page  = ceil($total_count / $config['cf_page_rows']);  // 전체 페이지 계산
@@ -59,10 +59,10 @@ trait memo  {
     $sql = " select a.*, b.mb_id, b.mb_nick, b.mb_email, b.mb_homepage
                 from {$g5['memo_table']} a
                 left join {$g5['member_table']} b on (a.me_{$unkind}_mb_id = b.mb_id)
-                where a.me_{$kind}_mb_id = '{$member['mb_id']}' and a.me_type = '$kind'
+                where a.me_{$kind}_mb_id = '{$member['mb_id']}' and a.me_type = :kind
                 order by a.me_id desc limit $from_record, {$config['cf_page_rows']} ";
 
-    $result = $this->sql_query($sql);
+    $result = $this->pdo_query($sql, array("kind"=>$kind));
     for ($i=0; $i<count($result); $i++) {
       $row = $result[$i];
       $list[$i] = $row;
@@ -136,7 +136,7 @@ trait memo  {
         $this->alert('정보공개를 하지 않았습니다.');
 
       // 4.00.15
-      $row = $this->sql_fetch(" select me_memo from {$g5['memo_table']} where me_id = '{$me_id}' and (me_recv_mb_id = '{$member['mb_id']}' or me_send_mb_id = '{$member['mb_id']}') ");
+      $row = $this->pdo_fetch(" select me_memo from {$g5['memo_table']} where me_id = :me_id and (me_recv_mb_id = '{$member['mb_id']}' or me_send_mb_id = '{$member['mb_id']}') ", array("me_id"=>$me_id));
       if ($row['me_memo'])  {
           $content = "\n\n\n".' >'
                           ."\n".' >'
@@ -184,7 +184,7 @@ trait memo  {
     run_event('memo_form_update_before', $recv_list);
 
     for ($i=0; $i<count($recv_list); $i++) {
-      $row = $this->sql_fetch(" select mb_id, mb_nick, mb_open, mb_leave_date, mb_intercept_date from {$g5['member_table']} where mb_id = '{$recv_list[$i]}' ");
+      $row = $this->sql_fetch(" select mb_id, mb_nick, mb_open, mb_leave_date, mb_intercept_date from {$g5['member_table']} where mb_id = :recv_list ", array("recv_list"=>$recv_list[$i]));
       if ($row) {
         if ($is_admin || ($row['mb_open'] && (!$row['mb_leave_date'] && !$row['mb_intercept_date']))) {
           $member_list['id'][]   = $row['mb_id'];
@@ -223,14 +223,14 @@ trait memo  {
       $recv_mb_nick = $this->get_text($member_list['nick'][$i]);
 
       // 받는 회원 쪽지 INSERT
-      $sql = " insert into {$g5['memo_table']} ( me_recv_mb_id, me_send_mb_id, me_send_datetime, me_memo, me_read_datetime, me_type, me_send_ip ) values ( '$recv_mb_id', '{$member['mb_id']}', '".G5_TIME_YMDHIS."', '{$_POST['me_memo']}', '0000-00-00 00:00:00' , 'recv', '{$_SERVER['REMOTE_ADDR']}' ) ";
+      $sql = " insert into {$g5['memo_table']} ( me_recv_mb_id, me_send_mb_id, me_send_datetime, me_memo, me_read_datetime, me_type, me_send_ip ) values ( '$recv_mb_id', '{$member['mb_id']}', '".G5_TIME_YMDHIS."', :me_memo, '0000-00-00 00:00:00' , 'recv', '{$_SERVER['REMOTE_ADDR']}' )";
 
-      $this->sql_query($sql);
+      $this->pdo_query($sql, array("me_memo"=>$_POST['me_memo']));
 
       if( $me_id = $this->db->lastInsertId() ){
         // 보내는 회원 쪽지 INSERT
-        $sql = " insert into {$g5['memo_table']} ( me_recv_mb_id, me_send_mb_id, me_send_datetime, me_memo, me_read_datetime, me_send_id, me_type , me_send_ip ) values ( '$recv_mb_id', '{$member['mb_id']}', '".G5_TIME_YMDHIS."', '{$_POST['me_memo']}', '0000-00-00 00:00:00', '$me_id', 'send', '{$_SERVER['REMOTE_ADDR']}' ) ";
-        $this->sql_query($sql);
+        $sql = " insert into {$g5['memo_table']} ( me_recv_mb_id, me_send_mb_id, me_send_datetime, me_memo, me_read_datetime, me_send_id, me_type , me_send_ip ) values ( '$recv_mb_id', '{$member['mb_id']}', '".G5_TIME_YMDHIS."', :me_memo, '0000-00-00 00:00:00', :me_id, 'send', '{$_SERVER['REMOTE_ADDR']}' ) ";
+        $this->pdo_query($sql, array("me_memo"=>$_POST['me_memo'], "me_id"=>$me_id));
         $member_list['me_id'][$i] = $me_id;
       }
 
@@ -281,13 +281,13 @@ trait memo  {
 
     $me_id = $me_id ? (int) $me_id : 0;
 
-    $sql = " select * from {$g5['memo_table']} where me_id = '{$me_id}' ";
-    $row = $this->sql_fetch($sql);
+    $sql = " select * from {$g5['memo_table']} where me_id = :me_id ";
+    $row = $this->pdo_fetch($sql, array("me_id"=>$me_id));
 
     $sql = " delete from {$g5['memo_table']}
-                where me_id = '{$me_id}'
+                where me_id = :me_id
                 and (me_recv_mb_id = '{$member['mb_id']}' or me_send_mb_id = '{$member['mb_id']}') ";
-    $this->sql_query($sql);
+    $this->sql_query($sql, array("me_id"=>$me_id));
 
     if (!$row['me_read_datetime'][0]) { // 메모 받기전이면
       $sql = " update {$g5['member_table']}

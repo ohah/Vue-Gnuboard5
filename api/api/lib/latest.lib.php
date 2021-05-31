@@ -25,9 +25,9 @@ trait latestlib {
       $bo_subject = $this->get_text($board['bo_subject']);
 
       $tmp_write_table = $g5['write_prefix'] . $bo_table; // 게시판 테이블 전체이름
-      $sql = " select * from {$tmp_write_table} where wr_is_comment = ? order by wr_num limit 0, {$rows} ";
+      $sql = " select * from {$tmp_write_table} where wr_is_comment = 0 order by wr_num limit 0, {$rows} ";
       
-      $result = $this->sql_query($sql, [0]);
+      $result = $this->pdo_query($sql);
       for ($i=0; $i<count($result); $i++) {
         $row = $result[$i];
         try {

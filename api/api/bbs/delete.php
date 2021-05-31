@@ -116,7 +116,7 @@ trait delete {
         $this->delete_editor_thumbnail($row['wr_content']);
 
         // 파일테이블 행 삭제
-        $this->sql_query(" delete from {$g5['board_file_table']} where bo_table = '$bo_table' and wr_id = '{$row['wr_id']}' ");
+        $this->pdo_query(" delete from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = '{$row['wr_id']}' ", array("bo_table"=>$bo_table));
 
         $count_write++;
       } else {
@@ -133,17 +133,17 @@ trait delete {
     $this->sql_query(" delete from $write_table where wr_parent = '{$write['wr_id']}' ");
 
     // 최근게시물 삭제
-    $this->sql_query(" delete from {$g5['board_new_table']} where bo_table = '$bo_table' and wr_parent = '{$write['wr_id']}' ");
+    $this->pdo_query(" delete from {$g5['board_new_table']} where bo_table = :bo_table and wr_parent = '{$write['wr_id']}' ", array("bo_table"=>$bo_table));
 
     // 스크랩 삭제
-    $this->sql_query(" delete from {$g5['scrap_table']} where bo_table = '$bo_table' and wr_id = '{$write['wr_id']}' ");
+    $this->pdo_query(" delete from {$g5['scrap_table']} where bo_table = :bo_table and wr_id = '{$write['wr_id']}' ", array("bo_table"=>$bo_table));
 
     $bo_notice = $this->board_notice($board['bo_notice'], $write['wr_id']);
-    $this->sql_query(" update {$g5['board_table']} set bo_notice = '{$bo_notice}' where bo_table = '{$bo_table}' ");
+    $this->pdo_query(" update {$g5['board_table']} set bo_notice = '{$bo_notice}' where bo_table = :bo_table ", array("bo_table"=>$bo_table));
 
     // 글숫자 감소
     if ($count_write > 0 || $count_comment > 0) {
-      $this->sql_query(" update {$g5['board_table']} set bo_count_write = bo_count_write - '{$count_write}', bo_count_comment = bo_count_comment - '{$count_comment}' where bo_table = '{$bo_table}' ");
+      $this->pdo_query(" update {$g5['board_table']} set bo_count_write = bo_count_write - '{$count_write}', bo_count_comment = bo_count_comment - '{$count_comment}' where bo_table = :bo_table ", array("bo_table"=>$bo_table));
     }
 
     $this->delete_cache_latest($bo_table);
@@ -221,11 +221,11 @@ trait delete {
 
     $sql = " select count(*) as cnt from {$write_table}
             where wr_comment_reply like '{$comment_reply}%'
-            and wr_id <> '{$comment_id}'
+            and wr_id <> :comment_id
             and wr_parent = '{$write['wr_parent']}'
             and wr_comment = '{$write['wr_comment']}'
             and wr_is_comment = 1 ";
-    $row = $this->sql_fetch($sql);
+    $row = $this->pdo_fetch($sql, array("comment_id"=>$comment_id));
     if ($row['cnt'] && !$is_admin)
       $this->alert('이 코멘트와 관련된 답변코멘트가 존재하므로 삭제 할 수 없습니다.');
 
@@ -234,7 +234,7 @@ trait delete {
       $this->insert_point($write['mb_id'], $board['bo_comment_point'] * (-1), "{$board['bo_subject']} {$write['wr_parent']}-{$comment_id} 댓글삭제");
 
     // 코멘트 삭제
-    $this->sql_query(" delete from {$write_table} where wr_id = '{$comment_id}' ");
+    $this->pdo_query(" delete from {$write_table} where wr_id = :comment_id ",array("comment_id"=>$comment_id));
 
     // 코멘트가 삭제되므로 해당 게시물에 대한 최근 시간을 다시 얻는다.
     $sql = " select max(wr_datetime) as wr_last from {$write_table} where wr_parent = '{$write['wr_parent']}' ";
@@ -244,10 +244,10 @@ trait delete {
     $this->sql_query(" update {$write_table} set wr_comment = wr_comment - 1, wr_last = '{$row['wr_last']}' where wr_id = '{$write['wr_parent']}' ");
 
     // 코멘트 숫자 감소
-    $this->sql_query(" update {$g5['board_table']} set bo_count_comment = bo_count_comment - 1 where bo_table = '{$bo_table}' ");
+    $this->pdo_query(" update {$g5['board_table']} set bo_count_comment = bo_count_comment - 1 where bo_table = :bo_table ", array("bo_table"=>$bo_table));
 
     // 새글 삭제
-    $this->sql_query(" delete from {$g5['board_new_table']} where bo_table = '{$bo_table}' and wr_id = '{$comment_id}' ");
+    $this->pdo_query(" delete from {$g5['board_new_table']} where bo_table = :bo_table and wr_id = :comment_id ", array("bo_table"=>$bo_table, "comment_id"=>$comment_id));
 
     $this->delete_cache_latest($bo_table);
 
@@ -298,7 +298,7 @@ trait delete {
 
     // 거꾸로 읽는 이유는 답변글부터 삭제가 되어야 하기 때문임
     for ($i=$chk_count-1; $i>=0; $i--) {
-      $write = $this->sql_fetch(" select * from $write_table where wr_id = '{$tmp_array[$i]}'");
+      $write = $this->pdo_fetch(" select * from $write_table where wr_id = :tmp_array", array("tmp_array"=>$tmp_array[$i]));
       
       if ($is_admin == 'super') {// 최고관리자 통과
         ;
@@ -357,8 +357,8 @@ trait delete {
             $this->insert_point($row['mb_id'], $board['bo_write_point'] * (-1), "{$board['bo_subject']} {$row['wr_id']} 글 삭제");
 
           // 업로드된 파일이 있다면
-          $sql2 = " select * from {$g5['board_file_table']} where bo_table = '$bo_table' and wr_id = '{$row['wr_id']}' ";
-          $result2 = $this->sql_query($sql2);
+          $sql2 = " select * from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = '{$row['wr_id']}' ";
+          $result2 = $this->pdo_query($sql2, array("bo_table"=>$bo_table));
           for($k=0;$k<count($result);$k++) {
             $row2 = $result2[$k];
             // 파일삭제
@@ -375,7 +375,7 @@ trait delete {
           // 에디터 썸네일 삭제
           $this->delete_editor_thumbnail($row['wr_content']);
           // 파일테이블 행 삭제
-          $this->sql_query(" delete from {$g5['board_file_table']} where bo_table = '$bo_table' and wr_id = '{$row['wr_id']}' ");
+          $this->pdo_query(" delete from {$g5['board_file_table']} where bo_table = :bo_table and wr_id = '{$row['wr_id']}' ", array("bo_table"=>$bo_table));
 
           $count_write++;
         } else {
@@ -391,10 +391,10 @@ trait delete {
         $this->sql_query(" delete from $write_table where wr_parent = '{$write['wr_id']}' ");
 
         // 최근게시물 삭제
-        $this->sql_query(" delete from {$g5['board_new_table']} where bo_table = '$bo_table' and wr_parent = '{$write['wr_id']}' ");
+        $this->pdo_query(" delete from {$g5['board_new_table']} where bo_table = :bo_table and wr_parent = '{$write['wr_id']}' ", array("bo_table"=>$bo_table));
 
         // 스크랩 삭제
-        $this->sql_query(" delete from {$g5['scrap_table']} where bo_table = '$bo_table' and wr_id = '{$write['wr_id']}' ");
+        $this->pdo_query(" delete from {$g5['scrap_table']} where bo_table = :bo_table and wr_id = '{$write['wr_id']}' ", array("bo_table"=>$bo_table));
 
         /*
         // 공지사항 삭제
@@ -406,13 +406,13 @@ trait delete {
         $bo_notice = trim($bo_notice);
         */
         $bo_notice = $this->board_notice($board['bo_notice'], $write['wr_id']);
-        $this->sql_query(" update {$g5['board_table']} set bo_notice = '$bo_notice' where bo_table = '$bo_table' ");
+        $this->pdo_query(" update {$g5['board_table']} set bo_notice = '$bo_notice' where bo_table = :bo_table ", array("bo_table"=>$bo_table));
         $board['bo_notice'] = $bo_notice;
       }
 
       // 글숫자 감소
       if ($count_write > 0 || $count_comment > 0) {
-        $this->sql_query(" update {$g5['board_table']} set bo_count_write = bo_count_write - '$count_write', bo_count_comment = bo_count_comment - '$count_comment' where bo_table = '$bo_table' ");
+        $this->pdo_query(" update {$g5['board_table']} set bo_count_write = bo_count_write - '$count_write', bo_count_comment = bo_count_comment - '$count_comment' where bo_table = :bo_table ", array("bo_table"=>$bo_table));
       }
 
       // 4.11

@@ -197,11 +197,11 @@ trait urllib{
     $sql_id = preg_replace('/[^a-z0-9_\-]/i', '', $sql_id);
     // 영카트 상품코드의 경우 - 하이픈이 들어가야 함
     if( $type === 'bbs' ){
-      $row = $this->sql_fetch("SELECT wr_seo_title FROM {$write_table} WHERE wr_seo_title = ? AND wr_id <> ? LIMIT 1",[$seo_title, $sql_id]);
+      $row = $this->pdo_fetch("SELECT wr_seo_title FROM {$write_table} WHERE wr_seo_title = :seo_title AND wr_id <> :sql_id LIMIT 1",array("seo_title" => $seo_title, "sql_id" => $sql_id));
       $exists_title = $row['wr_seo_title'];
     } else if ( $type === 'content' ){
-      $row = $this->sql_fetch("SELECT co_seo_title FROM {$write_table} WHERE co_seo_title = ? AND co_id <> ? LIMIT 1",[$seo_title, $sql_id]);
-      $row = sql_fetch($sql);
+      $row = $this->pdo_fetch("SELECT co_seo_title FROM {$write_table} WHERE co_seo_title = :seo_title AND co_id <> :sql_id LIMIT 1",array("seo_title"=>$seo_title, "sql_id"=>$sql_id));
+      // $row = sql_fetch($sql);
       $exists_title = $row['co_seo_title'];
     } else {
       //return run_replace('exist_check_seo_title', $seo_title, $type, $write_table, $sql_id);
@@ -234,19 +234,16 @@ trait urllib{
     global $g5;
     $pk_id = (int) $pk_id;
     if( $type === 'bbs' ){          
-      $write = $this->sql_fetch("SELECT * FROM {$db_table} WHERE wr_id = ?",[$pk_id]);
+      $write = $this->pdo_fetch("SELECT * FROM {$db_table} WHERE wr_id = :pk_id",array("pk_id"=>$pk_id));
       if( ! $write['wr_seo_title'] && $write['wr_subject'] ){
         $wr_seo_title = $this->exist_seo_title_recursive('bbs', $this->generate_seo_title($write['wr_subject']), $db_table, $pk_id);
-        $this->sql_query("UPDATE {$db_table} SET wr_seo_title = ? WHERE wr_id = ?", [$wr_seo_title, $pk_id]);
-        sql_query($sql);
+        $this->pdo_query("UPDATE {$db_table} SET wr_seo_title = :wr_seo_title WHERE wr_id = :pk_id", array("wr_seo_title"=>$wr_seo_title, "pk_id"=>$pk_id));
       }
     } else if ( $type === 'content' ){
-      $sql = " select * from {$g5['content_table']} where co_id = '$co_id' ";
-      $co = $this->sql_fetch("SELECT * FROM {$g5['content_table']} WHERE co_id = ?", [$co_id]);
+      $co = $this->pdo_fetch("SELECT * FROM {$g5['content_table']} WHERE co_id = :co_id", array("co_id"=>$co_id));
       if( ! $co['co_seo_title'] && $co['co_subject'] ){
         $co_seo_title = $this->exist_seo_title_recursive('content', $this->generate_seo_title($co['co_subject']), $db_table, $pk_id);
-        $this->sql_fetch("UPDATE {$db_table} SET co_seo_title = ? WHERE co_id = ?", [$co_se_title, $pk_id]);
-        sql_query($sql);
+        $this->pdo_fetch("UPDATE {$db_table} SET co_seo_title = :co_se_title WHERE co_id = :pk_id", array("co_se_title" => $co_se_title, "pk_id" => $pk_id));
       }
     }
   }

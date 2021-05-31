@@ -83,20 +83,20 @@ trait write {
   
       // 원글만 구한다.
       $sql = " select count(*) as cnt from {$write_table}
-                where wr_reply like '{$reply}%'
-                and wr_id <> '{$write['wr_id']}'
-                and wr_num = '{$write['wr_num']}'
+                where wr_reply like :reply
+                and wr_id <> :wr_id
+                and wr_num = :wr_num
                 and wr_is_comment = 0 ";
-      $row = $this->sql_fetch($sql);
+      $row = $this->pdo_fetch($sql, array("reply"=>$reply.'%', "wr_id"=>$write['wr_id'], "wr_num" => $write['wr_num']));
       if ($row['cnt'] && !$is_admin)
         $this->alert('이 글과 관련된 답변글이 존재하므로 수정 할 수 없습니다.\r\n답변글이 있는 원글은 수정할 수 없습니다.');
   
       // 코멘트 달린 원글의 수정 여부
     $sql = " select count(*) as cnt from {$write_table}
-              where wr_parent = '{$wr_id}'
-              and mb_id <> '{$member['mb_id']}'
+              where wr_parent = :wr_parent
+              and mb_id <> :mb_id
               and wr_is_comment = 1 ";
-      $row = $this->sql_fetch($sql);
+      $row = $this->pdo_fetch($sql, array("wr_parent"=>$wr_id, "mb_id"=>$member['mb_id']));
       if ($board['bo_count_modify'] && $row['cnt'] >= $board['bo_count_modify'] && !$is_admin)
         $this->alert('이 글과 관련된 댓글이 존재하므로 수정 할 수 없습니다.\r\n댓글이 '.$board['bo_count_modify'].'건 이상 달린 원글은 수정할 수 없습니다.');
 
@@ -181,8 +181,8 @@ trait write {
         ; // 통과
       } else {
         // 그룹접근
-        $sql = " select gr_id from {$g5['group_member_table']} where gr_id = '{$board['gr_id']}' and mb_id = '{$member['mb_id']}' ";
-        $row = $this->sql_fetch($sql);
+        $sql = " select gr_id from {$g5['group_member_table']} where gr_id = :gr_id and mb_id = :mb_id";
+        $row = $this->pdo_fetch($sql, array("gr_id"=>$board['gr_id'], "mb_id"=>$member['mb_id']));
         if (!$row['gr_id'])
           $this->alert('접근 권한이 없으므로 글쓰기가 불가합니다.\r\n궁금하신 사항은 관리자에게 문의 바랍니다.');
       }
