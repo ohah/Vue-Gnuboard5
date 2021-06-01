@@ -148,10 +148,11 @@ trait social {
   }
   public function Google(){
     require_once 'google/vendor/autoload.php';
+    $config = $this->config;
     $result = array();
     // init configuration
-    $clientID = '40957789666-126lt75vbca60rbr50if51s7j9o05kfu.apps.googleusercontent.com';
-    $clientSecret = '4Xvsy43AGrox-2qVfS3r8fkx';
+    $clientID = $config['cf_google_clientid'];
+    $clientSecret = $config['cf_google_secret'];
     $redirectUri = $this->callbackURI('google');
       
     // create Client Request to access Google API
@@ -166,7 +167,6 @@ trait social {
     if (isset($_GET['code'])) {
       $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
       $client->setAccessToken($token['access_token']);
-      
       // get profile info
       $google_oauth = new Google_Service_Oauth2($client);
       $google_account_info = $google_oauth->userinfo->get();
@@ -179,7 +179,6 @@ trait social {
       $user_profile->displayName = $google_account_info->name;
       $user_profile->photoURL    = $google_account_info->picture;
       $user_profile->email = $google_account_info->email;
-
       $user_profile->sid = $this->get_social_convert_id( $this->user->profile->identifier, $this->providerId );
       // $user_profile = json_encode($user_profile, true);
       // print_r($user_profile);

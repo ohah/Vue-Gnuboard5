@@ -38,9 +38,13 @@
               <Password placeholder="비밀번호를 입력하세요" v-model="mb_password" toggleMask></Password>
             </div>
             <div class="p-inputgroup" v-if="cf_social_login_use === 1">
-              <div v-for="(item, i) in cf_social_servicelist" :key="i">
+              <Social 
+                :list="cf_social_servicelist"
+                :ModalHide = LoginModalHide
+              />
+              <!-- <div v-for="(item, i) in cf_social_servicelist" :key="i">
                 <Button :label="item" @click="Popup(item)"/>
-              </div>
+              </div> -->
             </div>
             <!-- <iframe ref="iframe" crossorigin="anonymous"/> -->
           </form>
@@ -75,7 +79,11 @@ import { defineComponent,ref, computed, onMounted, reactive, toRefs } from 'vue'
 import { usePrimeVue } from "primevue/config";
 import { getAPI, getPostAPI, socialconfig } from '../type';
 import { useRoute, useRouter } from 'vue-router';
+import Social from '../components/Social.vue'
 export default defineComponent({
+  components : {
+    Social,
+  },
 	setup () {
     const primevue:any = usePrimeVue();
     const {state, dispatch, commit} = useStore<RootState>();
@@ -202,6 +210,9 @@ export default defineComponent({
       socialLogin.cf_social_login_use = res.data.cf_social_login_use;
       socialLogin.cf_social_servicelist = res.data.cf_social_servicelist;
     }
+    const LoginModalHide = () => {
+      loginModal.value = false;
+    }
     const stx = ref<string>('');
 		return {
       Popup,
@@ -220,6 +231,7 @@ export default defineComponent({
       ...toRefs(lgValue),
       member,
       SearchForm,
+      LoginModalHide,
       toggleSearch,
       stx,
       fsearch_onsubmit,
