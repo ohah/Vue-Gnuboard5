@@ -28,7 +28,6 @@ export default defineComponent({
       if(ModalHide) ModalHide();
       // return false;
     }
-    console.log('?',props.list);
     onMounted(()=>{
       console.log('소셜 로그인');
     })

@@ -53,7 +53,7 @@ import Chips from 'primevue/chips';
 import SelectButton from 'primevue/selectbutton';
 import 'primevue/resources/themes/saga-blue/theme.css';
 // import 'primevue/resources/themes/saga-orange/theme.css';
-
+import ProgressBar from 'primevue/progressbar';
 import './assets/vcms.css'
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
@@ -75,6 +75,7 @@ app.use(store);
 app.use(router);
 app.use(PrimeVue, {ripple: true});
 app.component('Dialog', Dialog);
+app.component('ProgressBar', ProgressBar);
 app.component('Splitter', Splitter);
 app.component('Galleria', Galleria);
 app.component('SplitterPanel', SplitterPanel);

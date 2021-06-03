@@ -348,4 +348,13 @@ $router->mount('/social', function() use ($router, $api) {
 $router->get('/poll', function() use ($api) {
   echo $api->poll();
 });
+$router->match('POST|PUT', '/poll_update', function() use ($api) {
+  echo $api->poll_update();
+});
+$router->match('POST|PUT', '/poll_etc_update', function() use ($api) {
+  echo $api->poll_etc_update();
+});
+$router->match('GET', '/poll_result', function() use ($api) {
+  echo $api->poll_result();
+});
 $router->run();

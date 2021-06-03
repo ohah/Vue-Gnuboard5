@@ -22,16 +22,6 @@ module.exports = {
           "^/api": ""
         }
       },
-      "/v": {
-        target: "http://localhost/",
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-        pathRewrite: {
-          "^/v": ""
-          
-        }
-      },
     },
     inline: true,
     hot: true,

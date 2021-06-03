@@ -2072,3 +2072,59 @@ export interface user_profile {
   user_name:string,
   user_nick:string,
 }
+export interface Po {
+  po_id: number;
+  po_subject: string;
+  po_poll1: string;
+  po_poll2: string;
+  po_poll3: string;
+  po_poll4: string;
+  po_poll5: string;
+  po_poll6: string;
+  po_poll7: string;
+  po_poll8: string;
+  po_poll9: string;
+  po_cnt1: number;
+  po_cnt2: number;
+  po_cnt3: number;
+  po_cnt4: number;
+  po_cnt5: number;
+  po_cnt6: number;
+  po_cnt7: number;
+  po_cnt8: number;
+  po_cnt9: number;
+  po_etc: string;
+  po_level: number;
+  po_point: number;
+  po_date: string;
+  mb_ids: string;
+}
+
+export interface po_list {
+  content: string;
+  cnt: number;
+  rate: number;
+  bar: number;
+  num: number;
+}
+
+export interface po_list3 {
+  po_id: number;
+  date: string;
+  subject: string;
+}
+export interface po_list2 {
+  pc_name:  string;
+  name:     string;
+  idea:     string;
+  datetime: string;
+  del:      number;
+}
+export interface poll_result {
+  list: { [key: string]: po_list };
+  po: Po;
+  get_max_cnt: number;
+  list2: po_list2[];
+  list3: po_list3[];
+  captcha_html: any;
+}

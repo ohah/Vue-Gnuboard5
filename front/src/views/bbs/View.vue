@@ -37,9 +37,9 @@
             <i class="pi pi-user-edit p-mr-2"></i> <SideView :data="view.name" /> <span v-if="board.bo_use_ip_view"> {{view.wr_ip}} </span>
           </div>
           <div class="ddd">
-            <i class="pi pi-comment"></i> <span class="p-px-1"><a href="#bo_vc"> <i class="far fa-comment-dots"></i> {{view.wr_comment}} 건</a></span>
+            <i class="pi pi-comment"></i> <span class="p-px-1"><a href="#bo_vc"> {{view.wr_comment}} 건</a></span>
             <i class="pi pi-eye"></i><span class="p-px-1">{{view.wr_hit}} 회</span>
-            <span class="p-px-1"><span class="sound_only">작성일</span><i class="far fa-clock"></i> {{view.datetime}} </span>
+            <span class="p-px-1"><span class="sound_only">작성일</span> {{view.datetime}} </span>
           </div>
         </div>
       </section>

@@ -1632,7 +1632,7 @@ class Commonlib {
       // 소멸포인트가 있으면 내역 추가
       $expire_point = $this->get_expire_point($mb_id);
       if($expire_point > 0) {
-        $mb = $this->sql_fetch("SELECT mb_point FROM {$g5['member_table']} WHERE mb_id = ?", [$mb_id]);
+        $mb = $this->pdo_fetch("SELECT mb_point FROM {$g5['member_table']} WHERE mb_id = :mb_id", array("mb_id"=>$mb_id));
         $content = '포인트 소멸';
         $rel_table = '@expire';
         $rel_id = $mb_id;
@@ -1643,18 +1643,30 @@ class Commonlib {
         $po_expired = 1;
 
         $sql = "INSERT INTO {$g5['point_table']}
-                SET mb_id = ?,
-                    po_datetime = ?,
-                    po_content = ?,
-                    po_point = ?,
-                    po_use_point = ?,
-                    po_mb_point = ?,
-                    po_expired = ?,
-                    po_expire_date = ?,
-                    po_rel_table = ?,
-                    po_rel_id = ?,
-                    po_rel_action = ?";
-        $this->sql_query($sql, [$mb_id, G5_TIME_YMDHIS, addslashes($content), $point, '0', $po_mb_point, $po_expired, $po_expire_date, $rel_table, $rel_id, $rel_action]);
+                SET mb_id = :mb_id,
+                    po_datetime = :po_datetime,
+                    po_content = :po_content,
+                    po_point = :po_point,
+                    po_use_point = :po_use_point,
+                    po_mb_point = '0',
+                    po_expired = :po_expired,
+                    po_expire_date = :po_expire_date,
+                    po_rel_table = :po_rel_table,
+                    po_rel_id = :po_rel_id,
+                    po_rel_action = :po_rel_action";
+        $this->pdo_query($sql, 
+          array(
+            "mb_id" => $mb_id,
+            "po_datetime" => G5_TIME_YMDHIS,
+            "po_content"=> addslashes($content),
+            "point" => $point,
+            "po_mb_point" => $po_mb_point,
+            "po_expired" => $po_expired,
+            "po_expire_date" => $po_expire_date,
+            "rel_table" => $rel_table,
+            "rel_id" => $rel_id,
+            "rel_action" => $rel_action
+        ));
         // 포인트를 사용한 경우 포인트 내역에 사용금액 기록
         if($point < 0) {
           $this->insert_use_point($mb_id, $point);
@@ -1662,20 +1674,20 @@ class Commonlib {
       }
 
       // 유효기간이 있을 때 기간이 지난 포인트 expired 체크
-      $sql = "UPDATE {$g5['point_table']}
-              SET po_expired = ?
-              WHERE mb_id = ?
-              AND po_expired <> ?
-              AND po_expire_date <> ?
-              AND po_expire_date < ?";
-      $this->sql_query($sql, ['1', $mb_id, '1', '9999-12-32', G5_TIME_YMD]);
+      $sql = " update {$g5['point_table']}
+              set po_expired = '1'
+              where mb_id = :mb_id
+              and po_expired <> '1'
+              and po_expire_date <> '9999-12-31'
+              and po_expire_date < '".G5_TIME_YMD."' ";
+      $this->pdo_query($sql, array("mb_id"=>$mb_id));
     }
 
     // 포인트합
     $sql = "SELECT sum(po_point) as sum_po_point
             FROM {$g5['point_table']}
-            WHERE mb_id = ?";
-    $row = $this->sql_fetch($sql, [$mb_id]);
+            WHERE mb_id = :mb_id";
+    $row = $this->pdo_fetch($sql, array("mb_id"=>$mb_id));
 
     return $row['sum_po_point'];
   }
@@ -1686,13 +1698,13 @@ class Commonlib {
     $config = $this->$config;
     if($config['cf_point_term'] == 0)
       return 0;
-    $sql = "SELECT sum(po_point - po_use_point) as sum_point
+    $sql = " select sum(po_point - po_use_point) as sum_point
             from {$g5['point_table']}
-            WHERE mb_id = ?
-            AND po_expired = '0'
-            AND po_expire_date <> '9999-12-31'
-            AND po_expire_date < '".G5_TIME_YMD."' ";
-    $row = $this->sql_fetch($sql, [$mb_id]);
+            where mb_id = :mb_id
+              and po_expired = '0'
+              and po_expire_date <> '9999-12-31'
+              and po_expire_date < '".G5_TIME_YMD."' ";
+    $row = $this->pdo_fetch($sql, array("mb_id"=>$mb_id));
 
     return $row['sum_point'];
   }

@@ -129,6 +129,7 @@ html, body{margin:0;padding:0;background-color: var(--body-background);}
 .p-grid-list li{display:flex;align-items: center;}
 .sound_only{display:none}
 .p-bold{font-weight: bold;}
+.p-normal{font-weight: 300;}
 .p-divider-solid.p-divider-horizontal:before{border-top-style:solid !important}
 .p-w-full{width:100%}
 .cmt-panel .p-panel-content	{padding: 0;}
@@ -168,6 +169,10 @@ html, body{margin:0;padding:0;background-color: var(--body-background);}
 .text-7xl{font-size: 4.5rem;line-height: 1;}
 .text-8xl{font-size: 6rem;line-height: 1;}
 .text-9xl{font-size: 8rem;line-height: 1;}
+.p-border-t{border-top:1px solid #dee2e6}
+.p-border-r{border-right:1px solid #dee2e6}
+.p-border-l{border-left:1px solid #dee2e6}
+.p-border-b{border-bottom:1px solid #dee2e6}
 .p-border{border:1px solid #dee2e6}
 .p-hidden{display:none !important;}
 .p-relative{position: relative;}
